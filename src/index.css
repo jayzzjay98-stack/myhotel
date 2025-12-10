@@ -1,11 +1,14 @@
 @import "tailwindcss";
 
-/* Custom fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Enable dark mode via class strategy */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Custom fonts - Noto Sans Lao for Lao text */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Lao:wght@300;400;500;600;700;800&display=swap');
 
 /* Base styles */
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Noto Sans Lao', 'Inter', sans-serif;
 }
 
 /* Smooth transitions */
@@ -33,4 +36,235 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* ===== Cute Micro-Animations for Status Icons ===== */
+
+/* Wiggle animation for Cleaning status - simulates scrubbing action */
+@keyframes wiggle {
+
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out infinite;
+}
+
+/* Breathe animation for Occupied status - gentle sleeping effect */
+@keyframes breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* Slow pulse for Reserved status */
+@keyframes slow-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-slow-pulse {
+  animation: slow-pulse 2s ease-in-out infinite;
+}
+
+/* Gentle bounce for hover effects */
+@keyframes gentle-bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-gentle-bounce {
+  animation: gentle-bounce 0.6s ease-in-out infinite;
+}
+
+/* Slow spin for Fan icon */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Snowflake pulse for AC icon */
+@keyframes snowflake-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.animate-snowflake-pulse {
+  animation: snowflake-pulse 2s ease-in-out infinite;
+}
+
+/* ===== Modal & Pop-up Animations ===== */
+
+/* Fade in animation for modal backdrop */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Slide up with fade for modal content */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Scale in animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Page transition fade */
+@keyframes pageFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pageFade {
+  animation: pageFade 0.3s ease-out forwards;
+}
+
+/* Button press effect */
+@keyframes buttonPress {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.97);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.active\:animate-press:active {
+  animation: buttonPress 0.15s ease-out;
+}
+
+/* Smooth tab indicator slide */
+.transition-slide {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Card hover lift */
+@keyframes cardLift {
+  from {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  to {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Smooth sidebar navigation */
+.nav-item-transition {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Toast notification slide in */
+@keyframes toastSlide {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-toastSlide {
+  animation: toastSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
