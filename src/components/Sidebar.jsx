@@ -1,13 +1,13 @@
 import { LayoutDashboard, BedDouble, Users, Settings, Hotel } from 'lucide-react'
 
 const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', active: true },
-    { icon: BedDouble, label: 'Rooms', active: false },
-    { icon: Users, label: 'Guests', active: false },
-    { icon: Settings, label: 'Settings', active: false },
+    { icon: LayoutDashboard, label: 'Dashboard', key: 'dashboard' },
+    { icon: BedDouble, label: 'Rooms', key: 'rooms' },
+    { icon: Users, label: 'Guests', key: 'guests' },
+    { icon: Settings, label: 'Settings', key: 'settings' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ activeTab, setActiveTab }) {
     return (
         <aside className="w-64 h-screen bg-white shadow-sm flex flex-col fixed left-0 top-0 z-50">
             {/* Logo */}
@@ -27,19 +27,23 @@ export default function Sidebar() {
             <nav className="flex-1 p-4">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-3">Menu</p>
                 <ul className="space-y-2">
-                    {navItems.map((item) => (
-                        <li key={item.label}>
-                            <button
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${item.active
-                                        ? 'bg-blue-50 text-blue-600 shadow-sm'
-                                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                                    }`}
-                            >
-                                <item.icon className={`w-5 h-5 ${item.active ? 'text-blue-600' : 'text-gray-400'}`} />
-                                <span className={`font-medium ${item.active ? 'font-semibold' : ''}`}>{item.label}</span>
-                            </button>
-                        </li>
-                    ))}
+                    {navItems.map((item) => {
+                        const isActive = activeTab === item.key
+                        return (
+                            <li key={item.key}>
+                                <button
+                                    onClick={() => setActiveTab(item.key)}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                                            ? 'bg-blue-50 text-blue-600 shadow-sm'
+                                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                                        }`}
+                                >
+                                    <item.icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                                    <span className={`font-medium ${isActive ? 'font-semibold' : ''}`}>{item.label}</span>
+                                </button>
+                            </li>
+                        )
+                    })}
                 </ul>
             </nav>
 

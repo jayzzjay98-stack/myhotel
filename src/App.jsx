@@ -1,7 +1,9 @@
+import { useState } from 'react'
+import { Clock, Users, Settings as SettingsIcon, Wrench } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import StatsCards from './components/StatsCards'
-import RoomGrid from './components/RoomGrid'
+import RoomsView from './components/RoomsView'
 
 // Sample room data
 const rooms = [
@@ -31,32 +33,98 @@ const rooms = [
   { id: 20, number: '405', floor: 4, status: 'available', type: 'Premium Suite', guestName: null },
 ]
 
+// Recent activity data
+const recentActivity = [
+  { id: 1, action: 'Check-in', room: '102', guest: 'John Smith', time: '2 hours ago', icon: Users },
+  { id: 2, action: 'Check-out', room: '201', guest: 'Alice Brown', time: '3 hours ago', icon: Users },
+  { id: 3, action: 'Cleaning completed', room: '305', guest: null, time: '4 hours ago', icon: Wrench },
+  { id: 4, action: 'Reservation', room: '202', guest: 'David Lee', time: '5 hours ago', icon: Clock },
+  { id: 5, action: 'Check-in', room: '203', guest: 'Michael Brown', time: '6 hours ago', icon: Users },
+]
+
 function App() {
+  const [activeTab, setActiveTab] = useState('dashboard')
+
   // Calculate stats
   const counts = {
-    available: rooms.filter(r => r.status === 'available').length,
-    occupied: rooms.filter(r => r.status === 'occupied').length,
-    reserved: rooms.filter(r => r.status === 'reserved').length,
-    cleaning: rooms.filter(r => r.status === 'cleaning').length,
+    available: rooms.filter((r) => r.status === 'available').length,
+    occupied: rooms.filter((r) => r.status === 'occupied').length,
+    reserved: rooms.filter((r) => r.status === 'reserved').length,
+    cleaning: rooms.filter((r) => r.status === 'cleaning').length,
   }
-
-  // Group rooms by floor
-  const roomsByFloor = rooms.reduce((acc, room) => {
-    if (!acc[room.floor]) acc[room.floor] = []
-    acc[room.floor].push(room)
-    return acc
-  }, {})
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Main Content */}
       <main className="ml-64 p-8">
         <Header />
-        <StatsCards counts={counts} />
-        <RoomGrid roomsByFloor={roomsByFloor} />
+
+        {/* Conditional Page Rendering */}
+        {activeTab === 'dashboard' && (
+          <>
+            <StatsCards counts={counts} />
+
+            {/* Recent Activity Section */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">Recent Activity</h2>
+                <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  View all
+                </button>
+              </div>
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                      <activity.icon className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800">
+                        {activity.action} - Room {activity.room}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {activity.guest ? activity.guest : 'Staff action'}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-400">{activity.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'rooms' && <RoomsView rooms={rooms} />}
+
+        {activeTab === 'guests' && (
+          <div className="bg-white rounded-2xl p-12 shadow-sm border border-gray-100 text-center">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-blue-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Guests Management</h3>
+            <p className="text-gray-500 text-sm max-w-sm mx-auto">
+              Guest management features coming soon. You'll be able to view guest history, profiles, and more.
+            </p>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="bg-white rounded-2xl p-12 shadow-sm border border-gray-100 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <SettingsIcon className="w-8 h-8 text-gray-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Settings</h3>
+            <p className="text-gray-500 text-sm max-w-sm mx-auto">
+              Configure your hotel management preferences, user accounts, and system settings here.
+            </p>
+          </div>
+        )}
       </main>
     </div>
   )
