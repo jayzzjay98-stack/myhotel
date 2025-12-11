@@ -38,15 +38,15 @@ const Toast = ({ id, message, type = 'success', onClose }) => {
     return (
         <div
             className={`
-                flex items-center gap-3 p-4 rounded-xl shadow-lg border-l-4
+                flex items-center gap-4 p-5 rounded-xl shadow-lg border-l-4
                 ${variant.bgColor} ${variant.borderColor}
                 backdrop-blur-sm bg-opacity-90
                 animate-toastSlide
-                min-w-[280px] max-w-[400px]
+                min-w-[320px] max-w-[450px]
             `}
         >
-            <IconComponent className={`w-5 h-5 flex-shrink-0 ${variant.iconColor}`} />
-            <p className={`flex-1 text-sm font-medium ${variant.textColor}`}>
+            <IconComponent className={`w-6 h-6 flex-shrink-0 ${variant.iconColor}`} />
+            <p className={`flex-1 text-base font-medium ${variant.textColor}`}>
                 {message}
             </p>
             <button

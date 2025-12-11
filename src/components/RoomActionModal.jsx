@@ -17,7 +17,7 @@ const formatPrice = (price) => {
 
 // Lao date format
 const laoMonths = ['ມັງກອນ', 'ກຸມພາ', 'ມີນາ', 'ເມສາ', 'ພຶດສະພາ', 'ມິຖຸນາ', 'ກໍລະກົດ', 'ສິງຫາ', 'ກັນຍາ', 'ຕຸລາ', 'ພະຈິກ', 'ທັນວາ']
-const laoDays = ['ອາ.', 'ຈ.', 'ອ.', 'ພ.', 'ພຫ.', 'ສ.', 'ສ.']
+const laoDays = ['ວັນອາທິດ', 'ວັນຈັນ', 'ວັນອັງຄານ', 'ວັນພຸດ', 'ວັນພະຫັດ', 'ວັນສຸກ', 'ວັນເສົາ']
 
 // Format date nicely
 const formatDate = (dateString) => {
@@ -729,9 +729,9 @@ export default function RoomActionModal({
                 {/* Stay Details */}
                 <div className="grid grid-cols-3 gap-3">
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-700">
-                        <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-blue-600 dark:text-blue-400">ເຊັກອິນ</p>
-                        <p className="text-sm font-bold text-blue-800 dark:text-blue-200 mt-1">{formatDate(room.checkInDate)}</p>
+                        <Calendar className="w-7 h-7 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                        <p className="text-base font-medium text-blue-600 dark:text-blue-400">ເຊັກອິນ</p>
+                        <p className="text-base font-bold text-blue-800 dark:text-blue-200 mt-1">{formatDate(room.checkInDate)}</p>
                         {room.checkInTime && (
                             <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                                 🕐 {formatTime(room.checkInTime)} ໂມງ
@@ -748,12 +748,12 @@ export default function RoomActionModal({
                                     ? 'from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border-blue-200 dark:border-blue-700'
                                     : 'from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 border-amber-200 dark:border-amber-700'
                                 }`}>
-                                <Clock className={`w-6 h-6 mx-auto mb-2 ${isExtended ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`} />
-                                <p className={`text-sm font-medium ${isExtended ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                <Clock className={`w-7 h-7 mx-auto mb-2 ${isExtended ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`} />
+                                <p className={`text-base font-medium ${isExtended ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}>
                                     {isExtended ? 'ໄລຍະເວລາໃໝ່' : 'ໄລຍະເວລາ'}
                                 </p>
                                 <div className="flex items-center justify-center gap-2 mt-1">
-                                    <p className={`text-xl font-bold ${isExtended ? 'text-blue-800 dark:text-blue-200' : 'text-amber-800 dark:text-amber-200'}`}>
+                                    <p className={`text-2xl font-bold ${isExtended ? 'text-blue-800 dark:text-blue-200' : 'text-amber-800 dark:text-amber-200'}`}>
                                         {extendedDuration} ຄືນ
                                     </p>
                                     <button
@@ -767,23 +767,24 @@ export default function RoomActionModal({
                                     </button>
                                 </div>
                                 {isExtended && (
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                                         +{extendedDuration - room.stayDuration} ຄືນຈາກເດີມ
                                     </p>
                                 )}
                                 {!isExtended && (
-                                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">ກົດ + ເພື່ອເພີ່ມມື້</p>
+                                    <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">ກົດ + ເພື່ອເພີ່ມມື້</p>
                                 )}
                             </div>
                         )
                     })()}
 
                     <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/20 rounded-xl p-4 text-center border border-emerald-200 dark:border-emerald-700">
-                        <CalendarClock className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">ເຊັກເອົ້າ</p>
-                        <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200 mt-1">
+                        <CalendarClock className="w-7 h-7 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+                        <p className="text-base font-medium text-emerald-600 dark:text-emerald-400">ເຊັກເອົ້າ</p>
+                        <p className="text-base font-bold text-emerald-800 dark:text-emerald-200 mt-1">
                             {getCheckoutDate(room.checkInDate, extendedDuration)}
                         </p>
+                        <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300 mt-1">🕚 11:00 ໂມງ</p>
                     </div>
                 </div>
 

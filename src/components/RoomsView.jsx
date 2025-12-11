@@ -56,12 +56,14 @@ export default function RoomsView({ rooms, isDarkMode, onRoomClick, onBulkClean,
             // Status filter
             const matchesStatus = statusFilter === 'all' || room.status === statusFilter
 
-            // Search filter
+            // Search filter (room number, guest name, phone, passport)
             const searchLower = searchTerm.toLowerCase()
             const matchesSearch =
                 searchTerm === '' ||
                 room.number.toLowerCase().includes(searchLower) ||
-                (room.guestName && room.guestName.toLowerCase().includes(searchLower))
+                (room.guestName && room.guestName.toLowerCase().includes(searchLower)) ||
+                (room.phone && room.phone.toLowerCase().includes(searchLower)) ||
+                (room.passport && room.passport.toLowerCase().includes(searchLower))
 
             // Amenity filter (cooling or bed type)
             let matchesAmenity = true
@@ -133,7 +135,7 @@ export default function RoomsView({ rooms, isDarkMode, onRoomClick, onBulkClean,
     return (
         <div className="space-y-6">
             {/* Top Bar - Search & Filters */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 transition-colors duration-300">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 transition-colors duration-150">
                 <div className="flex flex-col gap-4">
                     {/* Filter Pills - Centered & Larger with Colors */}
                     <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -150,7 +152,7 @@ export default function RoomsView({ rooms, isDarkMode, onRoomClick, onBulkClean,
                                 <button
                                     key={filter.key}
                                     onClick={() => setStatusFilter(filter.key)}
-                                    className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-200 border-2 ${isActive ? 'scale-105' : 'hover:scale-105'} ${colorClasses[filter.color]} ${isActive ? 'border-transparent' : 'border-transparent'}`}
+                                    className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-100 border-2 ${isActive ? 'scale-105' : 'hover:scale-105'} ${colorClasses[filter.color]} ${isActive ? 'border-transparent' : 'border-transparent'}`}
                                 >
                                     {filter.label}
                                 </button>
@@ -158,24 +160,47 @@ export default function RoomsView({ rooms, isDarkMode, onRoomClick, onBulkClean,
                         })}
                     </div>
 
-                    {/* Quick Find Available Room Dropdown */}
-                    <div className="relative max-w-xs mx-auto w-full">
-                        <select
-                            value={quickFindType}
-                            onChange={(e) => setQuickFindType(e.target.value)}
-                            className={`w-full px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border-2 text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none ${quickFindType ? 'border-emerald-400 dark:border-emerald-500 text-emerald-700 dark:text-emerald-300' : 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-400'}`}
-                        >
-                            <option value="">🔍 ຄົ້ນຫາຫ້ອງວ່າງ...</option>
-                            <option value="fan-single">🌀 ຫ້ອງພັດລົມ ຕຽງດ່ຽວ</option>
-                            <option value="fan-double">🌀 ຫ້ອງພັດລົມ ຕຽງຄູ່</option>
-                            <option value="ac-single">❄️ ຫ້ອງແອ ຕຽງດ່ຽວ</option>
-                            <option value="ac-double">❄️ ຫ້ອງແອ ຕຽງຄູ່</option>
-                        </select>
-                        {/* Custom dropdown arrow */}
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
+                    {/* Search Row - Guest Search + Quick Find */}
+                    <div className="flex items-center justify-center gap-4 flex-wrap">
+                        {/* Guest Search Input */}
+                        <div className="relative w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="ຄົ້ນຫາ ຫ້ອງ/ຊື່/ເບີໂທ/ພາສປອດ..."
+                                className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Quick Find Available Room Dropdown */}
+                        <div className="relative w-56">
+                            <select
+                                value={quickFindType}
+                                onChange={(e) => setQuickFindType(e.target.value)}
+                                className={`w-full px-4 py-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border-2 text-lg font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none font-sans ${quickFindType ? 'border-emerald-400 dark:border-emerald-500 text-emerald-700 dark:text-emerald-300' : 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-400'}`}
+                            >
+                                <option value="" className="text-base py-2">🔍 ຄົ້ນຫາຫ້ອງວ່າງ...</option>
+                                <option value="fan-single" className="text-base py-2">🌀 ຫ້ອງພັດລົມ ຕຽງດ່ຽວ</option>
+                                <option value="fan-double" className="text-base py-2">🌀 ຫ້ອງພັດລົມ ຕຽງຄູ່</option>
+                                <option value="ac-single" className="text-base py-2">❄️ ຫ້ອງແອ ຕຽງດ່ຽວ</option>
+                                <option value="ac-double" className="text-base py-2">❄️ ຫ້ອງແອ ຕຽງຄູ່</option>
+                            </select>
+                            {/* Custom dropdown arrow */}
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -260,7 +285,7 @@ export default function RoomsView({ rooms, isDarkMode, onRoomClick, onBulkClean,
                         selectedRooms={selectedRooms}
                     />
                 ) : (
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-12 shadow-sm border border-gray-100 dark:border-slate-700 text-center transition-colors duration-300">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-12 shadow-sm border border-gray-100 dark:border-slate-700 text-center transition-colors duration-150">
                         <div className="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
                             <BedDouble className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                         </div>

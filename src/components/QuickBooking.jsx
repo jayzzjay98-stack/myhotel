@@ -106,20 +106,20 @@ export default function QuickBooking({ rooms, onQuickBook }) {
                             onClick={() => onQuickBook(option.filterType, option.filterValue)}
                             className={`${option.bgColor} rounded-xl p-5 border-2 border-transparent ${option.hoverBorder} 
                          hover:shadow-lg dark:hover:shadow-slate-900/30 hover:-translate-y-1 
-                         transition-all duration-300 cursor-pointer text-left group`}
+                         transition-all duration-150 cursor-pointer text-left group`}
                         >
                             <div className="flex items-start justify-between mb-3">
                                 <div className={`${option.iconBg} w-11 h-11 rounded-xl flex items-center justify-center shadow-md`}>
                                     <IconComponent className={`w-6 h-6 ${option.iconColor}`} />
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                                <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-150" />
                             </div>
 
-                            <p className="text-lg font-bold text-gray-800 dark:text-white mb-2">{option.label}</p>
+                            <p className="text-xl font-bold text-gray-800 dark:text-white mb-2">{option.label}</p>
 
                             <div className="flex items-center gap-2">
-                                <span className="text-4xl font-bold text-gray-800 dark:text-white">{count}</span>
-                                <span className="text-lg text-gray-500 dark:text-gray-400">ຫ້ອງວ່າງ</span>
+                                <span className="text-5xl font-bold text-gray-800 dark:text-white">{count}</span>
+                                <span className="text-xl text-gray-500 dark:text-gray-400">ຫ້ອງວ່າງ</span>
                             </div>
                         </button>
                     )

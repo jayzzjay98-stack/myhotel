@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Lock, Eye, EyeOff, Check, AlertCircle, Pencil, Trash2, Bed, BedDouble, Fan, Snowflake, Plus, ArrowLeft, Database, Settings, ChevronRight } from 'lucide-react'
+import { X, Lock, Eye, EyeOff, Check, AlertCircle, Pencil, Trash2, Bed, BedDouble, Fan, Snowflake, Plus, ArrowLeft, Database, Settings, ChevronRight, Key, Shield } from 'lucide-react'
 
 // Dual PIN System
 const MASTER_PIN = '12345'  // ຜູ້ດູແລ/ເຈົ້າຂອງ (Admin/Owner) - Full Access
@@ -359,6 +359,15 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
     const [clearDataError, setClearDataError] = useState('')
     const [showClearDataPin, setShowClearDataPin] = useState(false)
 
+    // Change Password State
+    const [changePinType, setChangePinType] = useState(null) // 'admin', 'staff', or null
+    const [oldPin, setOldPin] = useState('')
+    const [newPin, setNewPin] = useState('')
+    const [confirmPin, setConfirmPin] = useState('')
+    const [changePinError, setChangePinError] = useState('')
+    const [showOldPin, setShowOldPin] = useState(false)
+    const [showNewPin, setShowNewPin] = useState(false)
+
     // Get unique floors from rooms
     const uniqueFloors = [...new Set(rooms.map(r => r.floor || 1))].sort((a, b) => a - b)
 
@@ -488,6 +497,30 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
                                 </div>
                             </div>
                         </button>
+
+                        {/* Card 3: Security / Change PIN */}
+                        <button
+                            onClick={() => setActiveSection('security')}
+                            className="group p-8 bg-white dark:bg-slate-800 rounded-2xl border-2 border-gray-100 dark:border-slate-700 hover:border-amber-500 dark:hover:border-amber-500 transition-all shadow-lg hover:shadow-xl hover:shadow-amber-500/10 text-left"
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform">
+                                    <Key className="w-8 h-8 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                                        ຄວາມປອດໄພ
+                                    </h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        ປ່ຽນລະຫັດຜ່ານ Admin, Staff, Lock
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-3 text-amber-500">
+                                        <span className="text-sm font-medium">ປ່ຽນລະຫັດຜ່ານ</span>
+                                        <ChevronRight className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
                     </div>
                 </>
             )}
@@ -548,11 +581,8 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
                                 <div key={floor} className="space-y-4">
                                     {/* Floor Header */}
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                                            <span className="text-white font-bold text-lg">{floor}</span>
-                                        </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-gray-800 dark:text-white">ຊັ້ນ {floor}</h3>
+                                            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">ຊັ້ນ {floor}</h3>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">{floorRooms.length} ຫ້ອງ</p>
                                         </div>
                                     </div>
@@ -694,6 +724,172 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
                             </div>
                         </div>
                     </div>
+                </>
+            )}
+
+            {/* ===================== SECURITY SECTION ===================== */}
+            {activeSection === 'security' && (
+                <>
+                    {/* Back Button + Header */}
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => { setActiveSection(null); setChangePinType(null); }}
+                            className="p-2 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        </button>
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">ປ່ຽນລະຫັດຜ່ານ</h2>
+                            <p className="text-gray-500 dark:text-gray-400">ເລືອກປະເພດລະຫັດທີ່ຕ້ອງການປ່ຽນ</p>
+                        </div>
+                    </div>
+
+                    {/* PIN Type Selection */}
+                    {!changePinType && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            {/* Admin PIN */}
+                            <button
+                                onClick={() => { setChangePinType('admin'); setOldPin(''); setNewPin(''); setConfirmPin(''); setChangePinError(''); }}
+                                className="group p-6 bg-white dark:bg-slate-800 rounded-2xl border-2 border-gray-100 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all text-left"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                        <Shield className="w-7 h-7 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-800 dark:text-white">ລະຫັດຜູ້ດູແລ (Admin)</h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">ໃຊ້ສຳລັບລ້າງຂໍ້ມູນ, ຕັ້ງຄ່າພິເສດ</p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            {/* Staff PIN */}
+                            <button
+                                onClick={() => { setChangePinType('staff'); setOldPin(''); setNewPin(''); setConfirmPin(''); setChangePinError(''); }}
+                                className="group p-6 bg-white dark:bg-slate-800 rounded-2xl border-2 border-gray-100 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all text-left"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                                        <Key className="w-7 h-7 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-800 dark:text-white">ລະຫັດພະນັກງານ (Staff)</h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">ໃຊ້ສຳລັບເຂົ້າເຖິງທົ່ວໄປ, ປົດລັອກ</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Change PIN Form */}
+                    {changePinType && (
+                        <div className="mt-6 max-w-md">
+                            <div className={`p-6 rounded-2xl border-2 ${changePinType === 'admin' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'}`}>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${changePinType === 'admin' ? 'bg-blue-500' : 'bg-emerald-500'}`}>
+                                        {changePinType === 'admin' ? <Shield className="w-6 h-6 text-white" /> : <Key className="w-6 h-6 text-white" />}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+                                            ປ່ຽນລະຫັດ {changePinType === 'admin' ? 'ຜູ້ດູແລ' : 'ພະນັກງານ'}
+                                        </h3>
+                                        <button onClick={() => setChangePinType(null)} className="text-sm text-gray-500 hover:underline">
+                                            ← ກັບຄືນ
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Error Message */}
+                                {changePinError && (
+                                    <div className="flex items-center gap-2 p-3 bg-rose-100 dark:bg-rose-900/30 rounded-xl mb-4 border border-rose-200 dark:border-rose-800">
+                                        <AlertCircle className="w-5 h-5 text-rose-500" />
+                                        <p className="text-sm text-rose-600 dark:text-rose-400">{changePinError}</p>
+                                    </div>
+                                )}
+
+                                <div className="space-y-4">
+                                    {/* Old PIN */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ລະຫັດເກົ່າ *</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showOldPin ? 'text' : 'password'}
+                                                value={oldPin}
+                                                onChange={(e) => { setOldPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 5)); setChangePinError(''); }}
+                                                placeholder="•••••"
+                                                maxLength={5}
+                                                className="w-full px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-600 text-center text-xl tracking-widest font-mono"
+                                            />
+                                            <button type="button" onClick={() => setShowOldPin(!showOldPin)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                                {showOldPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* New PIN */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ລະຫັດໃໝ່ *</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showNewPin ? 'text' : 'password'}
+                                                value={newPin}
+                                                onChange={(e) => { setNewPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 5)); setChangePinError(''); }}
+                                                placeholder="•••••"
+                                                maxLength={5}
+                                                className="w-full px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-600 text-center text-xl tracking-widest font-mono"
+                                            />
+                                            <button type="button" onClick={() => setShowNewPin(!showNewPin)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                                {showNewPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Confirm New PIN */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ຢືນຢັນລະຫັດໃໝ່ *</label>
+                                        <input
+                                            type={showNewPin ? 'text' : 'password'}
+                                            value={confirmPin}
+                                            onChange={(e) => { setConfirmPin(e.target.value.replace(/[^0-9]/g, '').slice(0, 5)); setChangePinError(''); }}
+                                            placeholder="•••••"
+                                            maxLength={5}
+                                            className="w-full px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-600 text-center text-xl tracking-widest font-mono"
+                                        />
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <button
+                                        onClick={() => {
+                                            const currentPin = changePinType === 'admin' ? MASTER_PIN : STAFF_PIN
+                                            if (oldPin !== currentPin) {
+                                                setChangePinError('ລະຫັດເກົ່າບໍ່ຖືກຕ້ອງ')
+                                                return
+                                            }
+                                            if (newPin.length < 4) {
+                                                setChangePinError('ລະຫັດໃໝ່ຕ້ອງມີຢ່າງໜ້ອຍ 4 ຕົວເລກ')
+                                                return
+                                            }
+                                            if (newPin !== confirmPin) {
+                                                setChangePinError('ລະຫັດໃໝ່ບໍ່ກົງກັນ')
+                                                return
+                                            }
+                                            // TODO: Save new PIN to storage
+                                            alert(`✅ ປ່ຽນລະຫັດ ${changePinType === 'admin' ? 'ຜູ້ດູແລ' : 'ພະນັກງານ'} ສຳເລັດ!\n\nໝາຍເຫດ: ໃນ version ນີ້ ລະຫັດຈະກັບຄືນເປັນຄ່າເລີ່ມຕົ້ນຫຼັງ restart. ຈະຕ້ອງເກັບໃນ database ໃນ version ຖັດໄປ.`)
+                                            setChangePinType(null)
+                                            setOldPin('')
+                                            setNewPin('')
+                                            setConfirmPin('')
+                                        }}
+                                        disabled={!oldPin || !newPin || !confirmPin}
+                                        className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${changePinType === 'admin' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}
+                                    >
+                                        <Check className="w-5 h-5" />
+                                        ບັນທຶກລະຫັດໃໝ່
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
 

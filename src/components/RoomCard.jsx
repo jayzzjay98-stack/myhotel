@@ -87,7 +87,7 @@ export default function RoomCard({ room, onRoomClick, isSelectionMode = false, i
     const coolingColor = isFan
         ? 'text-orange-500 dark:text-orange-400'
         : 'text-blue-500 dark:text-blue-400'
-    const coolingAnimation = isFan ? 'animate-spin-slow' : 'animate-snowflake-pulse'
+    const coolingAnimation = '' // No animation for cooling icons
 
     // Bed icon config - using custom SVG icons
     const isDouble = bed === 'double'
@@ -121,7 +121,7 @@ export default function RoomCard({ room, onRoomClick, isSelectionMode = false, i
         <div
             onClick={handleClick}
             className={`${selectedCardBg} rounded-2xl p-4 ${selectedBorderClass} 
-                  hover:shadow-lg dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-200 cursor-pointer
+                  hover:shadow-lg dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-100 cursor-pointer
                   group relative overflow-hidden ${isSelectable ? 'ring-2 ring-cyan-300/50 dark:ring-cyan-500/30' : ''}`}
         >
             {/* Selection Checkmark Overlay */}
@@ -142,7 +142,7 @@ export default function RoomCard({ room, onRoomClick, isSelectionMode = false, i
             )}
 
             {/* Hover overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-50/0 to-gray-50/50 dark:from-slate-700/0 dark:to-slate-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-50/0 to-gray-50/50 dark:from-slate-700/0 dark:to-slate-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" />
 
             <div className="relative z-10">
                 {/* TOP: Status Badge (Left) + Cooling Icon (Right) */}
@@ -154,7 +154,11 @@ export default function RoomCard({ room, onRoomClick, isSelectionMode = false, i
 
                     {/* Cooling Icon - Larger */}
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isFan ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'} ${isSelected ? 'mr-10' : ''}`}>
-                        <CoolingIcon className={`w-8 h-8 ${coolingColor} ${coolingAnimation}`} />
+                        {isFan ? (
+                            <img src="/fan-icon.png" alt="Fan" className="w-8 h-8 dark:invert dark:brightness-200" />
+                        ) : (
+                            <CoolingIcon className={`w-8 h-8 ${coolingColor} ${coolingAnimation}`} />
+                        )}
                     </div>
                 </div>
 

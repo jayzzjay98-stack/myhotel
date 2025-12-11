@@ -106,24 +106,24 @@ export default function StatsCards({ counts, isDarkMode, onStatsClick }) {
                         onClick={() => onStatsClick(stat.key)}
                         className={`${stat.bgColor} rounded-2xl p-6 border-2 border-transparent ${stat.hoverBorder} 
                        hover:shadow-xl dark:hover:shadow-slate-900/30 hover:-translate-y-1 
-                       transition-all duration-300 cursor-pointer text-left group`}
+                       transition-all duration-150 cursor-pointer text-left group`}
                     >
                         {/* Header with Icon */}
                         <div className="flex items-start justify-between mb-4">
                             <div className={`${stat.iconBg} w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg`}>
                                 <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
                             </div>
-                            <ArrowRight className="w-5 h-5 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                            <ArrowRight className="w-5 h-5 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-150" />
                         </div>
 
                         {/* Count */}
                         <div className="mb-2">
-                            <span className={`text-4xl font-bold ${stat.valueColor}`}>{count}</span>
+                            <span className={`text-5xl font-bold ${stat.valueColor}`}>{count}</span>
                         </div>
 
                         {/* Label & Description */}
                         <div>
-                            <p className="text-lg font-semibold text-gray-800 dark:text-white truncate">{stat.label}</p>
+                            <p className="text-xl font-semibold text-gray-800 dark:text-white truncate">{stat.label}</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{stat.description}</p>
                         </div>
                     </button>

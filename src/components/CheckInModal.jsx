@@ -42,7 +42,7 @@ export default function CheckInModal({ room, onClose, onConfirm, isDarkMode }) {
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900/50 overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900/50 overflow-hidden animate-in fade-in zoom-in duration-100">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-slate-700">
                     <div className="flex items-center gap-3">

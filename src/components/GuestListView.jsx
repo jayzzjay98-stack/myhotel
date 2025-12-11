@@ -223,7 +223,7 @@ function GuestDetailModal({ guest, onClose, onVoid }) {
                             <div className="flex items-center gap-3">
                                 <AlertTriangle className="w-6 h-6 text-rose-600 dark:text-rose-400" />
                                 <div>
-                                    <p className="font-bold text-rose-700 dark:text-rose-300">ລາຍການຖືກຍົກເລີກແລ້ວ (VOID)</p>
+                                    <p className="font-bold text-rose-700 dark:text-rose-300">ລາຍການຖືກຍົກເລີກແລ້ວ</p>
                                     <p className="text-sm text-rose-600 dark:text-rose-400">
                                         ເຫດຜົນ: {voidReasons.find(r => r.key === guest.voidReason)?.label || guest.voidReason || 'ບໍ່ລະບຸ'}
                                     </p>
@@ -308,7 +308,7 @@ function GuestDetailModal({ guest, onClose, onVoid }) {
                                 ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                                 : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300'
                             }`}>
-                            {isVoided ? '✕ ຍົກເລີກແລ້ວ (VOID)' : guest.status === 'checked-out' ? '✓ ເຊັກເອົ້າແລ້ວ' : '● ກຳລັງພັກ'}
+                            {isVoided ? '✕ ຍົກເລີກແລ້ວ' : guest.status === 'checked-out' ? '✓ ເຊັກເອົ້າແລ້ວ' : '● ກຳລັງພັກ'}
                         </span>
                     </div>
 
@@ -330,7 +330,7 @@ function GuestDetailModal({ guest, onClose, onVoid }) {
     )
 }
 
-export default function GuestListView({ guestHistory, setGuestHistory }) {
+export default function GuestListView({ guestHistory, setGuestHistory, addToast }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [dateFilter, setDateFilter] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
@@ -397,7 +397,7 @@ export default function GuestListView({ guestHistory, setGuestHistory }) {
     }
 
     const getStatusLabel = (status) => {
-        if (status === 'void') return 'VOID'
+        if (status === 'void') return 'ຍົກເລີກແລ້ວ'
         return status === 'checked-out' ? 'ເຊັກເອົ້າແລ້ວ' : 'ກຳລັງພັກ'
     }
 
@@ -420,6 +420,10 @@ export default function GuestListView({ guestHistory, setGuestHistory }) {
                 : g
         ))
         setVoidingGuest(null)
+        // Show toast notification
+        if (addToast) {
+            addToast('ຍົກເລີກລາຍການສຳເລັດ (Void)!', 'success')
+        }
     }
 
     return (
@@ -517,24 +521,24 @@ export default function GuestListView({ guestHistory, setGuestHistory }) {
             {/* Guest Table */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
                 <table className="w-full">
-                    <thead className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+                    <thead className="bg-slate-700 dark:bg-slate-800">
                         <tr>
-                            <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                            <th className="px-6 py-4 text-left text-base font-bold text-white">
                                 <div className="flex items-center gap-2">👤 ຊື່ແຂກ</div>
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                            <th className="px-6 py-4 text-left text-base font-bold text-white">
                                 <div className="flex items-center gap-2">🚪 ຫ້ອງ</div>
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                            <th className="px-6 py-4 text-left text-base font-bold text-white">
                                 <div className="flex items-center gap-2">📅 ວັນເຊັກອິນ</div>
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                            <th className="px-6 py-4 text-left text-base font-bold text-white">
                                 <div className="flex items-center gap-2">📱 ເບີໂທ</div>
                             </th>
-                            <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                            <th className="px-6 py-4 text-left text-base font-bold text-white">
                                 <div className="flex items-center gap-2">📊 ສະຖານະ</div>
                             </th>
-                            <th className="px-6 py-4 text-right text-sm font-bold text-white">👁️ ເບິ່ງ</th>
+                            <th className="px-6 py-4 text-right text-base font-bold text-white">👁️ ເບິ່ງ</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-slate-700">

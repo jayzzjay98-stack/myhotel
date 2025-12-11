@@ -11,6 +11,7 @@ import ReportsView from './components/ReportsView'
 import CheckoutView from './components/CheckoutView'
 import VoidListView from './components/VoidListView'
 import ActivationScreen from './components/ActivationScreen'
+import LockScreen from './components/LockScreen'
 import { ToastContainer } from './components/Toast'
 
 // Room Type Pricing (LAK)
@@ -71,8 +72,9 @@ function App() {
 
   // Electron License State
   const [isActivated, setIsActivated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const isElectron = typeof window !== 'undefined' && window.electronAPI
+  const [isLoading, setIsLoading] = useState(isElectron ? true : false)
+  const [isLocked, setIsLocked] = useState(false)
 
   // Toast Notification State
   const [toasts, setToasts] = useState([])
@@ -132,10 +134,10 @@ function App() {
   const addToast = (message, type = 'success') => {
     const id = Date.now()
     setToasts(prev => [...prev, { id, message, type }])
-    // Auto-remove after 3 seconds
+    // Auto-remove after 3.5 seconds
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id))
-    }, 3000)
+    }, 3500)
   }
 
   // Remove toast manually
@@ -628,6 +630,18 @@ function App() {
     )
   }
 
+  // Show LockScreen if locked
+  if (isLocked) {
+    return (
+      <LockScreen
+        onUnlock={(userType) => {
+          setIsLocked(false)
+          addToast(`ປົດລັອກສຳເລັດ (${userType === 'admin' ? 'ແອັດມິນ' : 'ພະນັກງານ'})`, 'success')
+        }}
+      />
+    )
+  }
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark bg-slate-900' : 'bg-gray-50'} transition-colors duration-300`}>
       <Sidebar
@@ -636,6 +650,7 @@ function App() {
         isDarkMode={isDarkMode}
         toggleTheme={toggleTheme}
         checkoutCount={checkoutCount}
+        onLockScreen={() => setIsLocked(true)}
       />
 
       <main className="ml-64 p-8">
@@ -672,6 +687,7 @@ function App() {
           <GuestListView
             guestHistory={guestHistory}
             setGuestHistory={setGuestHistory}
+            addToast={addToast}
           />
         )}
 

@@ -5,7 +5,7 @@
  * npm install recharts
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Banknote, CalendarCheck, PieChart, TrendingUp, ArrowUpRight, ArrowDownRight, Filter, AlertTriangle, Eye, X } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
@@ -286,6 +286,18 @@ export default function ReportsView({ rooms, guestHistory = [] }) {
         return voidedTransactions.filter(g => g.voidBy === 'ພະນັກງານ' && g.voidDate === today)
     }, [voidedTransactions])
 
+    // Auto-hide staff void alert after 10 seconds
+    const [showStaffVoidAlert, setShowStaffVoidAlert] = useState(true)
+    useEffect(() => {
+        if (staffVoids.length > 0) {
+            setShowStaffVoidAlert(true)
+            const timer = setTimeout(() => {
+                setShowStaffVoidAlert(false)
+            }, 10000) // 10 seconds
+            return () => clearTimeout(timer)
+        }
+    }, [staffVoids.length])
+
     // Calculate summary metrics from REAL chart data
     const totalRevenue = chartData.reduce((sum, item) => sum + item.revenue, 0)
     const totalBookings = chartData.reduce((sum, item) => sum + item.bookings, 0)
@@ -333,7 +345,7 @@ export default function ReportsView({ rooms, guestHistory = [] }) {
                 </div>
 
                 {/* Suspicious Activity Alert - Staff Voids Today */}
-                {staffVoids.length > 0 && (
+                {staffVoids.length > 0 && showStaffVoidAlert && (
                     <div
                         onClick={() => setShowVoidHistory(true)}
                         className="bg-rose-100 dark:bg-rose-900/40 rounded-2xl p-4 border-2 border-rose-400 dark:border-rose-700 cursor-pointer hover:bg-rose-200 dark:hover:bg-rose-900/60 transition-all animate-pulse"
