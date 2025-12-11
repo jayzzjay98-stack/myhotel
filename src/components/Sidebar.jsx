@@ -20,7 +20,7 @@ export default function Sidebar({ activeTab, setActiveTab, isDarkMode, toggleThe
                     </div>
                     <div>
                         <h1 className="font-bold text-gray-800 dark:text-white text-lg">StayFlow</h1>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">ລະບົບຈັດການໂຮງແຮມ</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">ລະບົບຈັດການໂຮງແຮມ ແລະ ບ້ານພັກ</p>
                     </div>
                 </div>
             </div>
@@ -43,7 +43,7 @@ export default function Sidebar({ activeTab, setActiveTab, isDarkMode, toggleThe
                                 >
                                     <div className="flex items-center gap-3">
                                         <item.icon className={`w-5 h-5 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
-                                        <span className={`font-medium ${isActive ? 'font-semibold' : ''}`}>{item.label}</span>
+                                        <span className={`text-xl font-medium ${isActive ? 'font-bold' : ''}`}>{item.label}</span>
                                     </div>
                                     {showNotification && (
                                         <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${isActive

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import {
     X, User, Phone, CreditCard, Banknote, LogIn, LogOut,
     Calendar, Clock, CheckCircle, AlertCircle, Sparkles,
-    BedDouble, CalendarClock, AlertTriangle, Lock, Eye, EyeOff, XCircle
+    BedDouble, CalendarClock, AlertTriangle, Lock, Eye, EyeOff, XCircle,
+    Plus, ArrowRightLeft, Bed, Home, ChevronLeft, Search, Fan, Snowflake
 } from 'lucide-react'
 
 // Dual PIN System
@@ -46,6 +47,13 @@ const getCheckoutDate = (checkInDate, stayDuration) => {
     return formatDate(date.toISOString().split('T')[0])
 }
 
+// Get tomorrow's date as default for reservation
+const getTomorrowDate = () => {
+    const date = new Date()
+    date.setDate(date.getDate() + 1)
+    return date.toISOString().split('T')[0]
+}
+
 export default function RoomActionModal({
     room,
     onClose,
@@ -54,9 +62,25 @@ export default function RoomActionModal({
     onMarkCleaned,
     onConfirmReservation,
     onCancelReservation,
+    onReserveRoom,
+    onExtendStay,
+    onMoveRoom,
+    availableRooms = [],
     isDarkMode,
     roomTypePrices
 }) {
+    // Tab mode for available rooms: 'checkin' or 'reserve'
+    const [availableMode, setAvailableMode] = useState('checkin')
+
+    // Move Room view state
+    const [showMoveRoom, setShowMoveRoom] = useState(false)
+    const [moveSearchTerm, setMoveSearchTerm] = useState('')
+    const [moveFilterType, setMoveFilterType] = useState('all')
+    const [selectedTargetRoom, setSelectedTargetRoom] = useState(null)
+
+    // Extended Stay state - tracks local duration changes before confirming
+    const [extendedDuration, setExtendedDuration] = useState(room.stayDuration || 1)
+
     const [formData, setFormData] = useState({
         guestName: room.guestName || '',
         phone: room.phone || '',
@@ -64,6 +88,15 @@ export default function RoomActionModal({
         price: room.price || roomTypePrices[room.type] || 0,
         stayDuration: 1
     })
+
+    // Reservation form data
+    const [reservationData, setReservationData] = useState({
+        guestName: '',
+        phone: '',
+        reservationDate: getTomorrowDate(),
+        paymentStatus: 'Unpaid'
+    })
+
     const [error, setError] = useState('')
 
     // Cancel Reservation Modal State
@@ -79,14 +112,18 @@ export default function RoomActionModal({
         if (error) setError('')
     }
 
+    const handleReservationChange = (e) => {
+        const { name, value } = e.target
+        setReservationData(prev => ({ ...prev, [name]: value }))
+        if (error) setError('')
+    }
+
     const handleCheckIn = (e) => {
         e.preventDefault()
-        if (!formData.guestName.trim()) {
-            setError('ກະລຸນາປ້ອນຊື່ແຂກ')
-            return
-        }
+        // guestName is optional - default to 'ບໍ່ມີຊື່' if empty
+        const guestName = formData.guestName.trim() || 'ບໍ່ມີຊື່'
         onCheckIn(room.id, {
-            guestName: formData.guestName.trim(),
+            guestName: guestName,
             phone: formData.phone.trim(),
             passport: formData.passport.trim(),
             price: Number(formData.price),
@@ -94,11 +131,27 @@ export default function RoomActionModal({
         })
     }
 
+    const handleReserve = (e) => {
+        e.preventDefault()
+        // guestName is optional - default to 'ບໍ່ມີຊື່' if empty
+        const guestName = reservationData.guestName.trim() || 'ບໍ່ມີຊື່'
+        if (!reservationData.reservationDate) {
+            setError('ກະລຸນາເລືອກວັນທີເຂົ້າພັກ')
+            return
+        }
+        onReserveRoom(room.id, {
+            guestName: guestName,
+            phone: reservationData.phone.trim(),
+            reservationDate: reservationData.reservationDate,
+            paymentStatus: reservationData.paymentStatus
+        })
+    }
+
     // Status-specific content
     const renderContent = () => {
         switch (room.status) {
             case 'available':
-                return renderCheckInForm()
+                return renderAvailableContent()
             case 'occupied':
                 return renderOccupiedInfo()
             case 'reserved':
@@ -109,6 +162,150 @@ export default function RoomActionModal({
                 return null
         }
     }
+
+    // Available room content with tabs
+    const renderAvailableContent = () => (
+        <div>
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 dark:border-slate-700">
+                <button
+                    type="button"
+                    onClick={() => setAvailableMode('checkin')}
+                    className={`flex-1 py-3 px-4 text-center font-medium transition-all flex items-center justify-center gap-2 ${availableMode === 'checkin'
+                        ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <LogIn className="w-4 h-4" />
+                    ເຊັກອິນ
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setAvailableMode('reserve')}
+                    className={`flex-1 py-3 px-4 text-center font-medium transition-all flex items-center justify-center gap-2 ${availableMode === 'reserve'
+                        ? 'text-amber-600 dark:text-amber-400 border-b-2 border-amber-500 bg-amber-50/50 dark:bg-amber-900/20'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <CalendarClock className="w-4 h-4" />
+                    ຈອງລ່ວງໜ້າ
+                </button>
+            </div>
+
+            {/* Content based on active tab */}
+            {availableMode === 'checkin' ? renderCheckInForm() : renderReservationForm()}
+        </div>
+    )
+
+    // Reservation form for Available rooms
+    const renderReservationForm = () => (
+        <form onSubmit={handleReserve} className="p-6 space-y-4">
+            {/* Guest Name */}
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    ຊື່ແຂກ <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                        type="text"
+                        name="guestName"
+                        value={reservationData.guestName}
+                        onChange={handleReservationChange}
+                        placeholder="ປ້ອນຊື່ແຂກ"
+                        className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                    />
+                </div>
+                {error && <p className="text-sm text-rose-500 mt-1">{error}</p>}
+            </div>
+
+            {/* Phone */}
+            <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    ເບີໂທ <span className="text-gray-400 text-xs">(ບໍ່ບັງຄັບ)</span>
+                </label>
+                <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                        type="tel"
+                        name="phone"
+                        value={reservationData.phone}
+                        onChange={handleReservationChange}
+                        placeholder="020 XXXX XXXX"
+                        className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                    />
+                </div>
+            </div>
+
+            {/* Reservation Date & Payment Status Row */}
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        ວັນທີເຂົ້າພັກ <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                            type="date"
+                            name="reservationDate"
+                            value={reservationData.reservationDate}
+                            onChange={handleReservationChange}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        ສະຖານະການຈ່າຍເງິນ
+                    </label>
+                    <div className="relative">
+                        <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <select
+                            name="paymentStatus"
+                            value={reservationData.paymentStatus}
+                            onChange={handleReservationChange}
+                            className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all appearance-none"
+                        >
+                            <option value="Paid">🟢 ຈ່າຍແລ້ວ (Paid)</option>
+                            <option value="Unpaid">🔴 ຍັງບໍ່ຈ່າຍ (Unpaid)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Reservation Summary */}
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 border border-amber-100 dark:border-amber-800">
+                <div className="flex items-center gap-3">
+                    <CalendarClock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                    <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">ວັນທີເຂົ້າພັກ</p>
+                        <p className="font-semibold text-amber-700 dark:text-amber-300">
+                            {formatDate(reservationData.reservationDate)}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-2">
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 py-3 px-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                >
+                    ຍົກເລີກ
+                </button>
+                <button
+                    type="submit"
+                    className="flex-1 py-3 px-4 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                >
+                    <CalendarClock className="w-5 h-5" />
+                    ຢືນຢັນການຈອງ
+                </button>
+            </div>
+        </form>
+    )
 
     // Check-in form for Available rooms
     const renderCheckInForm = () => (
@@ -235,83 +432,458 @@ export default function RoomActionModal({
             </div>
         </form>
     )
-
     // Occupied room info
-    const renderOccupiedInfo = () => (
-        <div className="p-6 space-y-4">
-            {/* Guest Info Card */}
-            <div className="bg-gray-50 dark:bg-slate-900 rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-rose-600 dark:text-rose-400" />
-                    </div>
-                    <div>
-                        <p className="font-semibold text-gray-800 dark:text-white">{room.guestName}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{room.phone || 'ບໍ່ມີເບີໂທ'}</p>
-                    </div>
-                </div>
-                {room.passport && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <CreditCard className="w-4 h-4" />
-                        <span>ບັດ: {room.passport}</span>
-                    </div>
-                )}
-            </div>
+    const renderOccupiedInfo = () => {
+        // Move Room Selection View - 2 Step Flow
+        if (showMoveRoom) {
+            // Filter available rooms based on search and filter
+            const filteredRooms = availableRooms.filter(r => {
+                // Search by room number
+                const matchesSearch = moveSearchTerm === '' || r.number.includes(moveSearchTerm)
 
-            {/* Stay Details */}
-            <div className="grid grid-cols-3 gap-3">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-700">
-                    <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">ເຊັກອິນ</p>
-                    <p className="text-sm font-bold text-blue-800 dark:text-blue-200 mt-1">{formatDate(room.checkInDate)}</p>
-                    {room.checkInTime && (
-                        <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                            🕐 {formatTime(room.checkInTime)} ໂມງ
-                        </p>
+                // Filter by type
+                let matchesFilter = true
+                if (moveFilterType === 'fan') matchesFilter = r.roomType.includes('fan')
+                if (moveFilterType === 'ac') matchesFilter = r.roomType.includes('ac')
+                if (moveFilterType === 'single') matchesFilter = r.roomType.includes('single')
+                if (moveFilterType === 'double') matchesFilter = r.roomType.includes('double')
+
+                return matchesSearch && matchesFilter
+            })
+
+            // Step 2: Confirmation View
+            if (selectedTargetRoom) {
+                const priceDiff = selectedTargetRoom.price - room.price
+                const remainingDays = room.stayDuration || 1
+                const extraCharge = priceDiff * remainingDays
+                const originalTotal = room.price * remainingDays
+                const newTotal = selectedTargetRoom.price * remainingDays
+
+                return (
+                    <div className="p-6 space-y-4">
+                        {/* Header */}
+                        <div className="flex items-center gap-3 mb-4">
+                            <button
+                                onClick={() => setSelectedTargetRoom(null)}
+                                className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                            >
+                                <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                            </button>
+                            <div>
+                                <h3 className="font-semibold text-gray-800 dark:text-white">ຢືນຢັນການຍ້າຍຫ້ອງ</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">ກວດສອບລາຍລະອຽດກ່ອນຢືນຢັນ</p>
+                            </div>
+                        </div>
+
+                        {/* Room Comparison */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Current Room */}
+                            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-4 border border-rose-200 dark:border-rose-700 text-center">
+                                <p className="text-xs text-rose-500 dark:text-rose-400 mb-1">ຫ້ອງປັດຈຸບັນ</p>
+                                <p className="text-2xl font-bold text-rose-600 dark:text-rose-400">#{room.number}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {room.roomType === 'ac-single' && 'ແອ ຕຽງດ່ຽວ'}
+                                    {room.roomType === 'ac-double' && 'ແອ ຕຽງຄູ່'}
+                                    {room.roomType === 'fan-single' && 'ພັດລົມ ຕຽງດ່ຽວ'}
+                                    {room.roomType === 'fan-double' && 'ພັດລົມ ຕຽງຄູ່'}
+                                </p>
+                                <p className="text-sm font-medium text-rose-600 dark:text-rose-400 mt-2">
+                                    {formatPrice(room.price)}/ຄືນ
+                                </p>
+                            </div>
+
+                            {/* New Room */}
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-700 text-center">
+                                <p className="text-xs text-emerald-500 dark:text-emerald-400 mb-1">ຫ້ອງໃໝ່</p>
+                                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">#{selectedTargetRoom.number}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {selectedTargetRoom.roomType === 'ac-single' && 'ແອ ຕຽງດ່ຽວ'}
+                                    {selectedTargetRoom.roomType === 'ac-double' && 'ແອ ຕຽງຄູ່'}
+                                    {selectedTargetRoom.roomType === 'fan-single' && 'ພັດລົມ ຕຽງດ່ຽວ'}
+                                    {selectedTargetRoom.roomType === 'fan-double' && 'ພັດລົມ ຕຽງຄູ່'}
+                                </p>
+                                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mt-2">
+                                    {formatPrice(selectedTargetRoom.price)}/ຄືນ
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Price Breakdown */}
+                        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-600 space-y-3">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">ລາຄາເກົ່າ ({remainingDays} ຄືນ)</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">{formatPrice(originalTotal)}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">ລາຄາໃໝ່ ({remainingDays} ຄືນ)</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">{formatPrice(newTotal)}</span>
+                            </div>
+                            <div className="border-t border-gray-200 dark:border-slate-600 pt-3 flex items-center justify-between">
+                                <span className="font-bold text-gray-700 dark:text-gray-300">
+                                    {extraCharge > 0 ? 'ຕ້ອງຈ່າຍເພີ່ມ' : extraCharge < 0 ? 'ໄດ້ເງິນຄືນ' : 'ບໍ່ມີການປ່ຽນແປງ'}
+                                </span>
+                                <span className={`text-2xl font-bold ${extraCharge > 0 ? 'text-rose-600 dark:text-rose-400' :
+                                    extraCharge < 0 ? 'text-emerald-600 dark:text-emerald-400' :
+                                        'text-gray-500'
+                                    }`}>
+                                    {extraCharge > 0 ? '+' : ''}{formatPrice(extraCharge)}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedTargetRoom(null)}
+                                className="py-3 px-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                            >
+                                ກັບຄືນ
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onMoveRoom(room.id, selectedTargetRoom.id)
+                                    setSelectedTargetRoom(null)
+                                    setShowMoveRoom(false)
+                                }}
+                                className="flex-1 py-3 px-4 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2"
+                            >
+                                <ArrowRightLeft className="w-5 h-5" />
+                                ຢືນຢັນຍ້າຍ #{room.number} → #{selectedTargetRoom.number}
+                            </button>
+                        </div>
+                    </div>
+                )
+            }
+
+            // Step 1: Selection View (Grid)
+            return (
+                <div className="p-6 space-y-4">
+                    {/* Header with Back Button */}
+                    <div className="flex items-center gap-3 mb-2">
+                        <button
+                            onClick={() => {
+                                setShowMoveRoom(false)
+                                setMoveSearchTerm('')
+                                setMoveFilterType('all')
+                            }}
+                            className="p-2 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                        >
+                            <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        </button>
+                        <div>
+                            <h3 className="font-semibold text-gray-800 dark:text-white">ເລືອກຫ້ອງໃໝ່</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">ຍ້າຍ {room.guestName} ໄປຫ້ອງໃໝ່</p>
+                        </div>
+                    </div>
+
+                    {/* Search & Filter Bar */}
+                    <div className="space-y-3">
+                        {/* Search Input */}
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="ຄົ້ນຫາເລກຫ້ອງ..."
+                                value={moveSearchTerm}
+                                onChange={(e) => setMoveSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+
+                        {/* Filter Pills - Larger */}
+                        <div className="flex gap-3 flex-wrap">
+                            {[
+                                { key: 'all', label: 'ທັງໝົດ' },
+                                { key: 'ac', label: '❄️ ແອ' },
+                                { key: 'fan', label: '🌀 ພັດລົມ' },
+                                { key: 'single', label: '🛏️ ດ່ຽວ' },
+                                { key: 'double', label: '🛏️🛏️ ຄູ່' }
+                            ].map(({ key, label }) => (
+                                <button
+                                    key={key}
+                                    onClick={() => setMoveFilterType(key)}
+                                    className={`px-5 py-2.5 rounded-xl text-base font-semibold transition-all ${moveFilterType === key
+                                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                        : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                                        }`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Available Rooms Grid - Large Cards */}
+                    {filteredRooms.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-h-96 overflow-y-auto p-2">
+                            {filteredRooms.map((targetRoom) => {
+                                const isFan = targetRoom.roomType.includes('fan')
+                                const isSingle = targetRoom.roomType.includes('single')
+                                const CoolingIcon = isFan ? Fan : Snowflake
+                                const BedIcon = isSingle ? Bed : BedDouble
+
+                                // Lao room type label
+                                const roomTypeLabel = {
+                                    'ac-single': 'ຫ້ອງແອ • ຕຽງດ່ຽວ',
+                                    'ac-double': 'ຫ້ອງແອ • ຕຽງຄູ່',
+                                    'fan-single': 'ຫ້ອງພັດລົມ • ຕຽງດ່ຽວ',
+                                    'fan-double': 'ຫ້ອງພັດລົມ • ຕຽງຄູ່'
+                                }[targetRoom.roomType] || targetRoom.roomType
+
+                                return (
+                                    <button
+                                        key={targetRoom.id}
+                                        onClick={() => setSelectedTargetRoom(targetRoom)}
+                                        className="p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/20 rounded-2xl border-2 border-emerald-200 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer group"
+                                    >
+                                        {/* Large Room Number */}
+                                        <p className="text-5xl font-extrabold text-emerald-700 dark:text-emerald-300 group-hover:text-emerald-600">
+                                            {targetRoom.number}
+                                        </p>
+
+                                        {/* Icons Row */}
+                                        <div className="flex items-center justify-center gap-4 mt-4">
+                                            <div className={`p-3 rounded-xl ${isFan ? 'bg-cyan-100 dark:bg-cyan-900/40' : 'bg-blue-100 dark:bg-blue-900/40'}`}>
+                                                <CoolingIcon className={`w-8 h-8 ${isFan ? 'text-cyan-600 dark:text-cyan-400' : 'text-blue-600 dark:text-blue-400'}`} />
+                                            </div>
+                                            <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-xl">
+                                                <BedIcon className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                                            </div>
+                                        </div>
+
+                                        {/* Room Type Label */}
+                                        <p className="text-lg font-semibold text-gray-600 dark:text-gray-300 mt-4">
+                                            {roomTypeLabel}
+                                        </p>
+
+                                        {/* Price */}
+                                        <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
+                                            {formatPrice(targetRoom.price)}
+                                            <span className="text-sm font-normal text-gray-500 dark:text-gray-400">/ຄືນ</span>
+                                        </p>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <Home className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                            <p className="text-gray-500 dark:text-gray-400">ບໍ່ພົບຫ້ອງວ່າງ</p>
+                            {moveSearchTerm || moveFilterType !== 'all' ? (
+                                <button
+                                    onClick={() => {
+                                        setMoveSearchTerm('')
+                                        setMoveFilterType('all')
+                                    }}
+                                    className="mt-2 text-sm text-blue-500 hover:underline"
+                                >
+                                    ລ້າງຕົວກອງ
+                                </button>
+                            ) : null}
+                        </div>
+                    )}
+
+                    {/* Cancel Button */}
+                    <button
+                        onClick={() => {
+                            setShowMoveRoom(false)
+                            setMoveSearchTerm('')
+                            setMoveFilterType('all')
+                        }}
+                        className="w-full py-3 px-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                    >
+                        ຍົກເລີກ
+                    </button>
+                </div>
+            )
+        }
+
+        // Normal Occupied Room Info
+        return (
+            <div className="p-6 space-y-4">
+                {/* Guest Info Card */}
+                <div className="bg-gray-50 dark:bg-slate-900 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center">
+                            <User className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+                        </div>
+                        <div>
+                            <p className="font-semibold text-gray-800 dark:text-white">{room.guestName}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{room.phone || 'ບໍ່ມີເບີໂທ'}</p>
+                        </div>
+                    </div>
+                    {room.passport && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <CreditCard className="w-4 h-4" />
+                            <span>ບັດ: {room.passport}</span>
+                        </div>
                     )}
                 </div>
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 rounded-xl p-4 text-center border border-amber-200 dark:border-amber-700">
-                    <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-amber-600 dark:text-amber-400">ໄລຍະເວລາ</p>
-                    <p className="text-xl font-bold text-amber-800 dark:text-amber-200 mt-1">{room.stayDuration} ຄືນ</p>
-                </div>
-                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/20 rounded-xl p-4 text-center border border-emerald-200 dark:border-emerald-700">
-                    <CalendarClock className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">ເຊັກເອົ້າ</p>
-                    <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200 mt-1">{getCheckoutDate(room.checkInDate, room.stayDuration)}</p>
-                </div>
-            </div>
 
-            {/* Price Info */}
-            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-4 border border-rose-100 dark:border-rose-800">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">ຍອດລວມ</span>
-                    <span className="text-2xl font-bold text-rose-600 dark:text-rose-400">
-                        {formatPrice(room.price * (room.stayDuration || 1))}
-                    </span>
-                </div>
-            </div>
+                {/* Stay Details */}
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-700">
+                        <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                        <p className="text-sm font-medium text-blue-600 dark:text-blue-400">ເຊັກອິນ</p>
+                        <p className="text-sm font-bold text-blue-800 dark:text-blue-200 mt-1">{formatDate(room.checkInDate)}</p>
+                        {room.checkInTime && (
+                            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                                🕐 {formatTime(room.checkInTime)} ໂມງ
+                            </p>
+                        )}
+                    </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-2">
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="flex-1 py-3 px-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
-                >
-                    ປິດ
-                </button>
-                <button
-                    type="button"
-                    onClick={() => onCheckOut(room.id)}
-                    className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-xl font-medium hover:bg-rose-600 shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2"
-                >
-                    <LogOut className="w-5 h-5" />
-                    ເຊັກເອົ້າ
-                </button>
+                    {/* Duration with Extend Stay Button */}
+                    {(() => {
+                        const isExtended = extendedDuration > room.stayDuration
+                        return (
+                            <div className={`bg-gradient-to-br rounded-xl p-4 text-center border relative
+                                ${isExtended
+                                    ? 'from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 border-blue-200 dark:border-blue-700'
+                                    : 'from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 border-amber-200 dark:border-amber-700'
+                                }`}>
+                                <Clock className={`w-6 h-6 mx-auto mb-2 ${isExtended ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`} />
+                                <p className={`text-sm font-medium ${isExtended ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                    {isExtended ? 'ໄລຍະເວລາໃໝ່' : 'ໄລຍະເວລາ'}
+                                </p>
+                                <div className="flex items-center justify-center gap-2 mt-1">
+                                    <p className={`text-xl font-bold ${isExtended ? 'text-blue-800 dark:text-blue-200' : 'text-amber-800 dark:text-amber-200'}`}>
+                                        {extendedDuration} ຄືນ
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExtendedDuration(prev => prev + 1)}
+                                        className={`p-2 text-white rounded-full transition-all shadow-lg hover:shadow-xl cursor-pointer active:scale-95
+                                            ${isExtended ? 'bg-blue-500 hover:bg-blue-600' : 'bg-amber-500 hover:bg-amber-600'}`}
+                                        title="ເພີ່ມມື້"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                {isExtended && (
+                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                        +{extendedDuration - room.stayDuration} ຄືນຈາກເດີມ
+                                    </p>
+                                )}
+                                {!isExtended && (
+                                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">ກົດ + ເພື່ອເພີ່ມມື້</p>
+                                )}
+                            </div>
+                        )
+                    })()}
+
+                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/20 rounded-xl p-4 text-center border border-emerald-200 dark:border-emerald-700">
+                        <CalendarClock className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+                        <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">ເຊັກເອົ້າ</p>
+                        <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200 mt-1">
+                            {getCheckoutDate(room.checkInDate, extendedDuration)}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Price Info - Dynamic based on isExtended */}
+                {(() => {
+                    const isExtended = extendedDuration > room.stayDuration
+                    const originalTotal = room.price * room.stayDuration
+                    const newTotal = room.price * extendedDuration
+                    const extraPayment = newTotal - originalTotal
+
+                    if (isExtended) {
+                        return (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700 space-y-3">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">ຈ່າຍແລ້ວ ({room.stayDuration} ຄືນ)</span>
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">{formatPrice(originalTotal)}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">ຍອດລວມໃໝ່ ({extendedDuration} ຄືນ)</span>
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">{formatPrice(newTotal)}</span>
+                                </div>
+                                <div className="border-t border-blue-200 dark:border-blue-600 pt-3 flex items-center justify-between">
+                                    <span className="font-bold text-blue-700 dark:text-blue-300">ຕ້ອງຈ່າຍເພີ່ມ</span>
+                                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                        +{formatPrice(extraPayment)}
+                                    </span>
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    return (
+                        <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-4 border border-rose-100 dark:border-rose-800">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">ຍອດລວມ</span>
+                                <span className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+                                    {formatPrice(originalTotal)}
+                                </span>
+                            </div>
+                        </div>
+                    )
+                })()}
+
+                {/* Action Buttons - Dynamic based on isExtended */}
+                {(() => {
+                    const isExtended = extendedDuration > room.stayDuration
+                    const extraDays = extendedDuration - room.stayDuration
+
+                    if (isExtended) {
+                        return (
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setExtendedDuration(room.stayDuration)}
+                                    className="py-3 px-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                                >
+                                    ຍົກເລີກ
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        onExtendStay(room.id, extraDays)
+                                        onClose()
+                                    }}
+                                    className="flex-1 py-3 px-4 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <CheckCircle className="w-5 h-5" />
+                                    ຢືນຢັນການຕໍ່ເວລາ (+{extraDays} ຄືນ)
+                                </button>
+                            </div>
+                        )
+                    }
+
+                    return (
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="py-3 px-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                            >
+                                ປິດ
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowMoveRoom(true)}
+                                className="py-3 px-4 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+                            >
+                                <ArrowRightLeft className="w-5 h-5" />
+                                ຍ້າຍຫ້ອງ
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onCheckOut(room.id)}
+                                className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-xl font-medium hover:bg-rose-600 shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2"
+                            >
+                                <LogOut className="w-5 h-5" />
+                                ເຊັກເອົ້າ
+                            </button>
+                        </div>
+                    )
+                })()}
             </div>
-        </div>
-    )
+        )
+    }
 
     // Reserved room info
     const renderReservationInfo = () => (
@@ -540,8 +1112,9 @@ export default function RoomActionModal({
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-            {/* Modal */}
-            <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900/50 overflow-hidden animate-slideUp">
+            {/* Modal - Dynamic width for Move Room */}
+            <div className={`relative w-full bg-white dark:bg-slate-800 rounded-2xl shadow-2xl dark:shadow-slate-900/50 overflow-hidden animate-slideUp
+                ${room.status === 'occupied' && showMoveRoom ? 'max-w-4xl' : 'max-w-lg'}`}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-slate-700">
                     <div className="flex items-center gap-3">

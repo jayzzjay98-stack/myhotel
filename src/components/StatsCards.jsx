@@ -1,4 +1,4 @@
-import { Clock, ArrowRight } from 'lucide-react'
+import { Clock, ArrowRight, Ban } from 'lucide-react'
 
 // Custom SVG - Unlocked Padlock (Available)
 const UnlockedIcon = ({ className }) => (
@@ -82,38 +82,49 @@ const stats = [
         hoverBorder: 'hover:border-cyan-300 dark:hover:border-cyan-600',
         key: 'cleaning'
     },
+    {
+        label: 'ຍົກເລີກ (Void)',
+        description: 'ລາຍການທີ່ຍົກເລີກ',
+        icon: Ban,
+        bgColor: 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20',
+        iconBg: 'bg-red-600',
+        iconColor: 'text-white',
+        valueColor: 'text-red-600 dark:text-red-400',
+        hoverBorder: 'hover:border-red-300 dark:hover:border-red-600',
+        key: 'void'
+    },
 ]
 
 export default function StatsCards({ counts, isDarkMode, onStatsClick }) {
     return (
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-5 gap-6">
             {stats.map((stat) => {
                 const count = counts[stat.key] || 0
                 return (
                     <button
                         key={stat.key}
                         onClick={() => onStatsClick(stat.key)}
-                        className={`${stat.bgColor} rounded-2xl p-8 border-2 border-transparent ${stat.hoverBorder} 
+                        className={`${stat.bgColor} rounded-2xl p-6 border-2 border-transparent ${stat.hoverBorder} 
                        hover:shadow-xl dark:hover:shadow-slate-900/30 hover:-translate-y-1 
                        transition-all duration-300 cursor-pointer text-left group`}
                     >
                         {/* Header with Icon */}
-                        <div className="flex items-start justify-between mb-6">
-                            <div className={`${stat.iconBg} w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg`}>
-                                <stat.icon className={`w-7 h-7 ${stat.iconColor}`} />
+                        <div className="flex items-start justify-between mb-4">
+                            <div className={`${stat.iconBg} w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg`}>
+                                <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
                             </div>
                             <ArrowRight className="w-5 h-5 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
                         </div>
 
                         {/* Count */}
                         <div className="mb-2">
-                            <span className={`text-5xl font-bold ${stat.valueColor}`}>{count}</span>
+                            <span className={`text-4xl font-bold ${stat.valueColor}`}>{count}</span>
                         </div>
 
                         {/* Label & Description */}
                         <div>
-                            <p className="text-lg font-semibold text-gray-800 dark:text-white">{stat.label}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{stat.description}</p>
+                            <p className="text-lg font-semibold text-gray-800 dark:text-white truncate">{stat.label}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{stat.description}</p>
                         </div>
                     </button>
                 )

@@ -9,6 +9,8 @@ import SettingsView from './components/SettingsView'
 import GuestListView from './components/GuestListView'
 import ReportsView from './components/ReportsView'
 import CheckoutView from './components/CheckoutView'
+import VoidListView from './components/VoidListView'
+import { ToastContainer } from './components/Toast'
 
 // Room Type Pricing (LAK)
 const roomTypePrices = {
@@ -29,26 +31,26 @@ const getDateString = (daysOffset = 0) => {
 const initialRooms = [
   // Floor 1
   { id: 1, number: '101', floor: 1, status: 'available', roomType: 'fan-single', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-single'] },
-  { id: 2, number: '102', floor: 1, status: 'occupied', roomType: 'ac-double', guestName: 'John Smith', phone: '020 5555 1234', passport: 'US12345', price: roomTypePrices['ac-double'], checkInDate: getDateString(-2), stayDuration: 5 },
-  { id: 3, number: '103', floor: 1, status: 'occupied', roomType: 'ac-single', guestName: 'Emma Wilson', phone: '020 7777 5678', passport: 'UK98765', price: roomTypePrices['ac-single'], checkInDate: getDateString(-1), stayDuration: 3 },
+  { id: 2, number: '102', floor: 1, status: 'occupied', roomType: 'ac-double', guestName: 'ສົມຊາຍ ໃຈດີ', phone: '020 5555 1234', passport: 'LA12345', price: roomTypePrices['ac-double'], checkInDate: getDateString(-2), stayDuration: 5 },
+  { id: 3, number: '103', floor: 1, status: 'occupied', roomType: 'ac-single', guestName: 'ສຸພາພອນ ສະບາຍດີ', phone: '020 7777 5678', passport: 'LA98765', price: roomTypePrices['ac-single'], checkInDate: getDateString(-1), stayDuration: 3 },
   { id: 4, number: '104', floor: 1, status: 'available', roomType: 'ac-double', guestName: null, phone: '', passport: '', price: roomTypePrices['ac-double'] },
   { id: 5, number: '105', floor: 1, status: 'cleaning', roomType: 'fan-double', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-double'] },
   // Floor 2
   { id: 6, number: '201', floor: 2, status: 'available', roomType: 'fan-single', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-single'] },
-  { id: 7, number: '202', floor: 2, status: 'reserved', roomType: 'ac-double', guestName: 'David Lee', phone: '020 9999 1111', passport: 'CN55555', reservationDate: getDateString(1), paymentStatus: 'Paid', price: roomTypePrices['ac-double'] },
-  { id: 8, number: '203', floor: 2, status: 'occupied', roomType: 'ac-double', guestName: 'Michael Brown', phone: '020 8888 9999', passport: 'CA55555', price: roomTypePrices['ac-double'], checkInDate: getDateString(-3), stayDuration: 7 },
+  { id: 7, number: '202', floor: 2, status: 'reserved', roomType: 'ac-double', guestName: 'ພັນທອງ ສີວົງ', phone: '020 9999 1111', passport: 'LA55555', reservationDate: getDateString(1), paymentStatus: 'Paid', price: roomTypePrices['ac-double'] },
+  { id: 8, number: '203', floor: 2, status: 'occupied', roomType: 'ac-double', guestName: 'ວິໄຊ ມົງຄຸນ', phone: '020 8888 9999', passport: 'LA55555', price: roomTypePrices['ac-double'], checkInDate: getDateString(-3), stayDuration: 7 },
   { id: 9, number: '204', floor: 2, status: 'available', roomType: 'fan-double', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-double'] },
-  { id: 10, number: '205', floor: 2, status: 'occupied', roomType: 'ac-single', guestName: 'Sarah Davis', phone: '020 1234 5678', passport: 'AU11111', price: roomTypePrices['ac-single'], checkInDate: getDateString(-1), stayDuration: 1 },
+  { id: 10, number: '205', floor: 2, status: 'occupied', roomType: 'ac-single', guestName: 'ນະພາ ຮຸ່ງເຮືອງ', phone: '020 1234 5678', passport: 'LA11111', price: roomTypePrices['ac-single'], checkInDate: getDateString(-1), stayDuration: 2 },
   // Floor 3
-  { id: 11, number: '301', floor: 3, status: 'reserved', roomType: 'ac-double', guestName: 'Anna Kim', phone: '020 2222 3333', passport: 'KR12345', reservationDate: getDateString(2), paymentStatus: 'Unpaid', price: roomTypePrices['ac-double'] },
+  { id: 11, number: '301', floor: 3, status: 'reserved', roomType: 'ac-double', guestName: 'ອານຸພາ ສີສະຫວັດ', phone: '020 2222 3333', passport: 'LA12345', reservationDate: getDateString(2), paymentStatus: 'Unpaid', price: roomTypePrices['ac-double'] },
   { id: 12, number: '302', floor: 3, status: 'available', roomType: 'fan-single', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-single'] },
   { id: 13, number: '303', floor: 3, status: 'cleaning', roomType: 'ac-single', guestName: null, phone: '', passport: '', price: roomTypePrices['ac-single'] },
-  { id: 14, number: '304', floor: 3, status: 'occupied', roomType: 'ac-double', guestName: 'Robert Johnson', phone: '020 9999 0000', passport: 'JP77777', price: roomTypePrices['ac-double'], checkInDate: getDateString(-4), stayDuration: 5 },
+  { id: 14, number: '304', floor: 3, status: 'occupied', roomType: 'ac-double', guestName: 'ບຸນມາ ສຸກໃຈ', phone: '020 9999 0000', passport: 'LA77777', price: roomTypePrices['ac-double'], checkInDate: getDateString(-4), stayDuration: 5 },
   { id: 15, number: '305', floor: 3, status: 'available', roomType: 'fan-double', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-double'] },
   // Floor 4
-  { id: 16, number: '401', floor: 4, status: 'occupied', roomType: 'ac-double', guestName: 'Lisa Anderson', phone: '020 1111 2222', passport: 'DE88888', price: roomTypePrices['ac-double'], checkInDate: getDateString(-2), stayDuration: 4 },
+  { id: 16, number: '401', floor: 4, status: 'occupied', roomType: 'ac-double', guestName: 'ມາລີ ດອກໄມ້', phone: '020 1111 2222', passport: 'LA88888', price: roomTypePrices['ac-double'], checkInDate: getDateString(-2), stayDuration: 4 },
   { id: 17, number: '402', floor: 4, status: 'available', roomType: 'ac-double', guestName: null, phone: '', passport: '', price: roomTypePrices['ac-double'] },
-  { id: 18, number: '403', floor: 4, status: 'reserved', roomType: 'ac-double', guestName: 'James Wilson', phone: '020 4444 5555', passport: 'FR99999', reservationDate: getDateString(3), paymentStatus: 'Paid', price: roomTypePrices['ac-double'] },
+  { id: 18, number: '403', floor: 4, status: 'reserved', roomType: 'ac-double', guestName: 'ສົມພອນ ອິນທະວົງ', phone: '020 4444 5555', passport: 'LA99999', reservationDate: getDateString(3), paymentStatus: 'Paid', price: roomTypePrices['ac-double'] },
   { id: 19, number: '404', floor: 4, status: 'cleaning', roomType: 'fan-double', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-double'] },
   { id: 20, number: '405', floor: 4, status: 'available', roomType: 'fan-single', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-single'] },
 ]
@@ -86,6 +88,24 @@ function App() {
   const [defaultFilter, setDefaultFilter] = useState('all')
   const [amenityFilter, setAmenityFilter] = useState({ type: 'all', value: 'all' })
 
+  // Toast Notification State
+  const [toasts, setToasts] = useState([])
+
+  // Add toast notification
+  const addToast = (message, type = 'success') => {
+    const id = Date.now()
+    setToasts(prev => [...prev, { id, message, type }])
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id))
+    }, 3000)
+  }
+
+  // Remove toast manually
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }
+
   const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
   useEffect(() => {
@@ -96,14 +116,47 @@ function App() {
     }
   }, [isDarkMode])
 
+  // Sync selectedRoom with rooms state so modal updates when room data changes
+  useEffect(() => {
+    if (selectedRoom && isModalOpen) {
+      const updatedRoom = rooms.find(r => r.id === selectedRoom.id)
+      if (updatedRoom && (
+        updatedRoom.stayDuration !== selectedRoom.stayDuration ||
+        updatedRoom.status !== selectedRoom.status ||
+        updatedRoom.guestName !== selectedRoom.guestName
+      )) {
+        setSelectedRoom(updatedRoom)
+      }
+    }
+  }, [rooms, selectedRoom, isModalOpen])
+
   const handleRoomClick = (room) => {
     setSelectedRoom(room)
     setIsModalOpen(true)
   }
 
   // Check-in: Available -> Occupied
+  // Uses "Business Day Cutoff" logic (06:00 AM)
+  // - If Current Hour < 6 (00:00 - 05:59): "Late Night Arrival" - checkInDate = Yesterday
+  // - If Current Hour >= 6 (06:00 onwards): "New Day Arrival" - checkInDate = Today
   const handleCheckIn = (roomId, guestData) => {
     const room = rooms.find(r => r.id === roomId)
+
+    // Business Day Cutoff Logic
+    const now = new Date()
+    const currentHour = now.getHours()
+    const BUSINESS_DAY_CUTOFF = 6 // 06:00 AM
+
+    // Calculate business check-in date
+    let checkInDate = new Date()
+    if (currentHour < BUSINESS_DAY_CUTOFF) {
+      // Late Night Arrival (00:00 - 05:59) -> Consider as previous night
+      checkInDate.setDate(checkInDate.getDate() - 1)
+    }
+    // Else: New Day Arrival (06:00+) -> Use today's date (no change needed)
+
+    const checkInDateString = checkInDate.toISOString().split('T')[0]
+
     setRooms(prevRooms =>
       prevRooms.map(r =>
         r.id === roomId
@@ -114,8 +167,8 @@ function App() {
             phone: guestData.phone,
             passport: guestData.passport,
             price: guestData.price,
-            checkInDate: getDateString(0),
-            checkInTime: new Date().toISOString(),
+            checkInDate: checkInDateString,
+            checkInTime: now.toISOString(),
             stayDuration: guestData.stayDuration || 1
           }
           : r
@@ -129,14 +182,15 @@ function App() {
       roomType: room.roomType,
       phone: guestData.phone,
       passport: guestData.passport,
-      checkInDate: getDateString(0),
-      checkInTime: new Date().toISOString(),
+      checkInDate: checkInDateString,
+      checkInTime: now.toISOString(),
       checkOutDate: null,
       checkOutTime: null,
       stayDuration: guestData.stayDuration || 1,
       totalPrice: guestData.price * (guestData.stayDuration || 1),
       status: 'staying'
     }, ...prev])
+    addToast('ເຊັກອິນສຳເລັດ! ຍິນດີຕ້ອນຮັບ ' + guestData.guestName, 'success')
     closeModal()
   }
 
@@ -156,6 +210,7 @@ function App() {
           : r
       )
     )
+    addToast('ເຊັກເອົ້າສຳເລັດ! ຂອບໃຈທີ່ໃຊ້ບໍລິການ', 'success')
     closeModal()
   }
 
@@ -166,6 +221,7 @@ function App() {
         room.id === roomId ? { ...room, status: 'available' } : room
       )
     )
+    addToast('ທຳຄວາມສະອາດສຳເລັດ! ຫ້ອງພ້ອມໃຊ້ງານ', 'success')
     closeModal()
   }
 
@@ -176,6 +232,122 @@ function App() {
         roomIds.includes(room.id) ? { ...room, status: 'available' } : room
       )
     )
+    addToast(`ທຳຄວາມສະອາດ ${roomIds.length} ຫ້ອງສຳເລັດ!`, 'success')
+  }
+
+  // Extend Stay: Add days to current stay
+  // Price: NewTotal = OldTotal + (RoomPrice * daysToAdd)
+  const handleExtendStay = (roomId, daysToAdd) => {
+    const room = rooms.find(r => r.id === roomId)
+    if (!room) return
+
+    const newDuration = (room.stayDuration || 1) + daysToAdd
+    const additionalCost = room.price * daysToAdd
+
+    // Update room duration
+    setRooms(prevRooms =>
+      prevRooms.map(r =>
+        r.id === roomId
+          ? { ...r, stayDuration: newDuration }
+          : r
+      )
+    )
+
+    // Update guest history - add cost for extra nights
+    setGuestHistory(prev => prev.map(g =>
+      g.roomNumber === room.number && g.status === 'staying'
+        ? {
+          ...g,
+          stayDuration: newDuration,
+          totalPrice: g.totalPrice + additionalCost // OldTotal + (RoomPrice * daysToAdd)
+        }
+        : g
+    ))
+    addToast(`ເພີ່ມໄລຍະເວລາສຳເລັດ! ຕອນນີ້ ${newDuration} ຄືນ`, 'success')
+  }
+
+  // Move Room: Transfer guest from one room to another
+  // Price Adjustment: NewTotal = OldTotal + ((NewPrice - OldPrice) * RemainingDays)
+  const handleMoveRoom = (oldRoomId, newRoomId) => {
+    const oldRoom = rooms.find(r => r.id === oldRoomId)
+    const newRoom = rooms.find(r => r.id === newRoomId)
+
+    if (!oldRoom || !newRoom || newRoom.status !== 'available') return
+
+    // Calculate remaining days: assume they're staying the rest of their booking
+    const remainingDays = oldRoom.stayDuration || 1
+    const priceDiff = newRoom.price - oldRoom.price
+    const extraCharge = priceDiff * remainingDays
+
+    // Update rooms
+    setRooms(prevRooms =>
+      prevRooms.map(r => {
+        if (r.id === newRoomId) {
+          // Move guest to new room with NEW room's price
+          return {
+            ...r,
+            status: 'occupied',
+            guestName: oldRoom.guestName,
+            phone: oldRoom.phone,
+            passport: oldRoom.passport,
+            checkInDate: oldRoom.checkInDate,
+            checkInTime: oldRoom.checkInTime,
+            stayDuration: oldRoom.stayDuration,
+            price: newRoom.price // Use new room's price
+          }
+        }
+        if (r.id === oldRoomId) {
+          // Mark old room for cleaning
+          return {
+            ...r,
+            status: 'cleaning',
+            guestName: null,
+            phone: '',
+            passport: '',
+            checkInDate: null,
+            checkInTime: null,
+            stayDuration: null
+          }
+        }
+        return r
+      })
+    )
+
+    // Update guest history with new room info and adjusted price
+    setGuestHistory(prev => prev.map(g =>
+      g.roomNumber === oldRoom.number && g.status === 'staying'
+        ? {
+          ...g,
+          roomNumber: newRoom.number,
+          roomType: newRoom.roomType,
+          totalPrice: g.totalPrice + extraCharge // OldTotal + PriceDiff * RemainingDays
+        }
+        : g
+    ))
+
+    addToast(`ຍ້າຍຫ້ອງສຳເລັດ! ຈາກ #${oldRoom.number} → #${newRoom.number}`, 'success')
+    closeModal()
+  }
+
+  // Reserve Room: Available -> Reserved
+  const handleReserveRoom = (roomId, reservationData) => {
+    const room = rooms.find(r => r.id === roomId)
+    setRooms(prevRooms =>
+      prevRooms.map(r =>
+        r.id === roomId
+          ? {
+            ...r,
+            status: 'reserved',
+            guestName: reservationData.guestName,
+            phone: reservationData.phone,
+            reservationDate: reservationData.reservationDate,
+            paymentStatus: reservationData.paymentStatus
+          }
+          : r
+      )
+    )
+    addToast(`ຈອງຫ້ອງສຳເລັດ! ${reservationData.guestName}`, 'success')
+    closeModal()
   }
 
   // Confirm Reservation: Reserved -> Occupied
@@ -187,6 +359,7 @@ function App() {
           : r
       )
     )
+    addToast('ເຊັກອິນຈາກການຈອງສຳເລັດ!', 'success')
     closeModal()
   }
 
@@ -291,6 +464,10 @@ function App() {
   }
 
   const handleStatsClick = (statusKey) => {
+    if (statusKey === 'void') {
+      setActiveTab('voids')
+      return
+    }
     setDefaultFilter(statusKey)
     setAmenityFilter({ type: 'all', value: 'all' })
     setActiveTab('rooms')
@@ -311,6 +488,7 @@ function App() {
     occupied: rooms.filter((r) => r.status === 'occupied').length,
     reserved: rooms.filter((r) => r.status === 'reserved').length,
     cleaning: rooms.filter((r) => r.status === 'cleaning').length,
+    void: guestHistory.filter((g) => g.status === 'void').length,
   }
 
   // Calculate rooms due for checkout today
@@ -378,6 +556,10 @@ function App() {
             onDeleteRoom={handleDeleteRoom}
           />
         )}
+
+        {activeTab === 'voids' && (
+          <VoidListView guestHistory={guestHistory} />
+        )}
       </main>
 
       {isModalOpen && selectedRoom && (
@@ -389,10 +571,17 @@ function App() {
           onMarkCleaned={handleMarkCleaned}
           onConfirmReservation={handleConfirmReservation}
           onCancelReservation={handleCancelReservation}
+          onReserveRoom={handleReserveRoom}
+          onExtendStay={handleExtendStay}
+          onMoveRoom={handleMoveRoom}
+          availableRooms={rooms.filter(r => r.status === 'available')}
           isDarkMode={isDarkMode}
           roomTypePrices={roomTypePrices}
         />
       )}
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
   )
 }

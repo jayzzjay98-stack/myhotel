@@ -92,7 +92,14 @@ export default function RoomCard({ room, onRoomClick, isSelectionMode = false, i
     // Bed icon config - using custom SVG icons
     const isDouble = bed === 'double'
     const BedIcon = isDouble ? DoubleBedIcon : SingleBedIcon
-    const bedLabel = isDouble ? 'ຕຽງຄູ່' : 'ຕຽງດ່ຽວ'
+
+    // Full room type label (Cooling + Bed)
+    const fullRoomTypeLabel = {
+        'ac-single': 'ຫ້ອງແອ ຕຽງດ່ຽວ',
+        'ac-double': 'ຫ້ອງແອ ຕຽງຄູ່',
+        'fan-single': 'ຫ້ອງພັດລົມ ຕຽງດ່ຽວ',
+        'fan-double': 'ຫ້ອງພັດລົມ ຕຽງຄູ່'
+    }[room.roomType] || (isDouble ? 'ຕຽງຄູ່' : 'ຕຽງດ່ຽວ')
 
     const handleClick = () => {
         if (onRoomClick) onRoomClick(room)
@@ -140,28 +147,28 @@ export default function RoomCard({ room, onRoomClick, isSelectionMode = false, i
             <div className="relative z-10">
                 {/* TOP: Status Badge (Left) + Cooling Icon (Right) */}
                 <div className="flex items-center justify-between mb-4">
-                    {/* Status Badge - Larger and Bolder */}
-                    <span className={`px-4 py-1.5 rounded-full text-base font-bold ${isSelected ? 'bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200' : `${status.badgeBg} ${status.badgeText}`}`}>
+                    {/* Status Badge - Larger */}
+                    <span className={`px-4 py-2 rounded-full text-sm font-bold ${isSelected ? 'bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200' : `${status.badgeBg} ${status.badgeText}`}`}>
                         {isSelected ? 'ເລືອກແລ້ວ' : status.label}
                     </span>
 
-                    {/* Cooling Icon */}
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isFan ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'} ${isSelected ? 'mr-10' : ''}`}>
-                        <CoolingIcon className={`w-5 h-5 ${coolingColor} ${coolingAnimation}`} />
+                    {/* Cooling Icon - Larger */}
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isFan ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'} ${isSelected ? 'mr-10' : ''}`}>
+                        <CoolingIcon className={`w-8 h-8 ${coolingColor} ${coolingAnimation}`} />
                     </div>
                 </div>
 
-                {/* MIDDLE: Room Number (Large, Centered) */}
-                <div className="text-center py-3">
-                    <span className={`text-4xl font-bold tracking-tight ${isSelected ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-800 dark:text-white'}`}>
+                {/* MIDDLE: Room Number (Huge, Centered) */}
+                <div className="text-center py-4">
+                    <span className={`text-5xl font-extrabold tracking-tight ${isSelected ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-800 dark:text-white'}`}>
                         {room.number}
                     </span>
                 </div>
 
-                {/* BOTTOM: Bed Icon + Bed Type Text - Centered and Larger */}
-                <div className="flex items-center justify-center gap-3 pt-3 border-t border-gray-100 dark:border-slate-700">
-                    <BedIcon className="w-10 h-10 text-gray-500 dark:text-gray-400" />
-                    <span className="text-lg font-semibold text-gray-600 dark:text-gray-300">{bedLabel}</span>
+                {/* BOTTOM: Bed Icon + Full Room Type Label - Centered */}
+                <div className="flex items-center justify-center gap-2 pt-4 border-t border-gray-100 dark:border-slate-700">
+                    <BedIcon className="w-7 h-7 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                    <span className="text-base font-semibold text-gray-600 dark:text-gray-300 truncate">{fullRoomTypeLabel}</span>
                 </div>
             </div>
         </div>

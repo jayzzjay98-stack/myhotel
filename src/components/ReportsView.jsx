@@ -9,43 +9,99 @@ import { useState, useMemo } from 'react'
 import { Banknote, CalendarCheck, PieChart, TrendingUp, ArrowUpRight, ArrowDownRight, Filter, AlertTriangle, Eye, X } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
-// Mock revenue data
-const generateMockData = () => {
-    const dailyData = [
-        { name: 'Mon', revenue: 1250000, bookings: 4 },
-        { name: 'Tue', revenue: 1850000, bookings: 6 },
-        { name: 'Wed', revenue: 1550000, bookings: 5 },
-        { name: 'Thu', revenue: 2100000, bookings: 7 },
-        { name: 'Fri', revenue: 2750000, bookings: 9 },
-        { name: 'Sat', revenue: 3200000, bookings: 11 },
-        { name: 'Sun', revenue: 2400000, bookings: 8 },
-    ]
+// Lao day names for chart display
+const laoDayNames = ['ອາທິດ', 'ຈັນ', 'ອັງຄານ', 'ພຸດ', 'ພະຫັດ', 'ສຸກ', 'ເສົາ']
+const laoMonthNames = ['ມ.ກ.', 'ກ.ພ.', 'ມີ.ນ.', 'ເມ.ສ.', 'ພ.ພ.', 'ມິ.ຖ.', 'ກ.ລ.', 'ສ.ຫ.', 'ກ.ຍ.', 'ຕ.ລ.', 'ພ.ຈ.', 'ທ.ວ.']
 
-    const weeklyData = [
-        { name: 'Week 1', revenue: 12500000, bookings: 42 },
-        { name: 'Week 2', revenue: 15800000, bookings: 53 },
-        { name: 'Week 3', revenue: 14200000, bookings: 48 },
-        { name: 'Week 4', revenue: 16500000, bookings: 55 },
-    ]
+// Process chart data from real guestHistory
+const processChartData = (guests, timeRange) => {
+    // Filter out voided transactions - only include checked-out and staying guests
+    const validGuests = guests.filter(g => g.status === 'checked-out' || g.status === 'staying')
 
-    const monthlyData = [
-        { name: 'Jul', revenue: 45000000, bookings: 150 },
-        { name: 'Aug', revenue: 52000000, bookings: 173 },
-        { name: 'Sep', revenue: 48000000, bookings: 160 },
-        { name: 'Oct', revenue: 55000000, bookings: 183 },
-        { name: 'Nov', revenue: 62000000, bookings: 207 },
-        { name: 'Dec', revenue: 58000000, bookings: 193 },
-    ]
+    const today = new Date()
 
-    const yearlyData = [
-        { name: '2020', revenue: 480000000, bookings: 1600 },
-        { name: '2021', revenue: 520000000, bookings: 1733 },
-        { name: '2022', revenue: 610000000, bookings: 2033 },
-        { name: '2023', revenue: 680000000, bookings: 2267 },
-        { name: '2024', revenue: 720000000, bookings: 2400 },
-    ]
+    if (timeRange === 'daily') {
+        // Last 7 days
+        const result = []
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today)
+            date.setDate(date.getDate() - i)
+            const dateStr = date.toISOString().split('T')[0]
+            const dayName = laoDayNames[date.getDay()]
 
-    return { daily: dailyData, weekly: weeklyData, monthly: monthlyData, yearly: yearlyData }
+            const dayGuests = validGuests.filter(g => g.checkInDate === dateStr)
+            const revenue = dayGuests.reduce((sum, g) => sum + (g.totalPrice || 0), 0)
+            const bookings = dayGuests.length
+
+            result.push({ name: dayName, revenue, bookings })
+        }
+        return result
+    }
+
+    if (timeRange === 'weekly') {
+        // Last 4 weeks
+        const result = []
+        for (let i = 3; i >= 0; i--) {
+            const weekStart = new Date(today)
+            weekStart.setDate(weekStart.getDate() - (i * 7) - today.getDay())
+            const weekEnd = new Date(weekStart)
+            weekEnd.setDate(weekEnd.getDate() + 6)
+
+            const weekGuests = validGuests.filter(g => {
+                const checkIn = new Date(g.checkInDate)
+                return checkIn >= weekStart && checkIn <= weekEnd
+            })
+
+            const revenue = weekGuests.reduce((sum, g) => sum + (g.totalPrice || 0), 0)
+            const bookings = weekGuests.length
+
+            result.push({ name: `ອາທິດ ${4 - i}`, revenue, bookings })
+        }
+        return result
+    }
+
+    if (timeRange === 'monthly') {
+        // Last 6 months
+        const result = []
+        for (let i = 5; i >= 0; i--) {
+            const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1)
+            const monthIndex = monthDate.getMonth()
+            const year = monthDate.getFullYear()
+
+            const monthGuests = validGuests.filter(g => {
+                const checkIn = new Date(g.checkInDate)
+                return checkIn.getMonth() === monthIndex && checkIn.getFullYear() === year
+            })
+
+            const revenue = monthGuests.reduce((sum, g) => sum + (g.totalPrice || 0), 0)
+            const bookings = monthGuests.length
+
+            result.push({ name: laoMonthNames[monthIndex], revenue, bookings })
+        }
+        return result
+    }
+
+    if (timeRange === 'yearly') {
+        // Last 5 years
+        const result = []
+        const currentYear = today.getFullYear()
+        for (let i = 4; i >= 0; i--) {
+            const year = currentYear - i
+
+            const yearGuests = validGuests.filter(g => {
+                const checkIn = new Date(g.checkInDate)
+                return checkIn.getFullYear() === year
+            })
+
+            const revenue = yearGuests.reduce((sum, g) => sum + (g.totalPrice || 0), 0)
+            const bookings = yearGuests.length
+
+            result.push({ name: String(year), revenue, bookings })
+        }
+        return result
+    }
+
+    return []
 }
 
 // Custom Tooltip
@@ -211,10 +267,9 @@ function VoidHistoryModal({ voidedTransactions, onClose }) {
 export default function ReportsView({ rooms, guestHistory = [] }) {
     const [timeRange, setTimeRange] = useState('weekly')
     const [showVoidHistory, setShowVoidHistory] = useState(false)
-    const mockData = useMemo(() => generateMockData(), [])
 
-    // Get current data based on time range
-    const currentData = mockData[timeRange] || mockData.weekly
+    // Process chart data from real guestHistory based on time range
+    const chartData = useMemo(() => processChartData(guestHistory, timeRange), [guestHistory, timeRange])
 
     // Calculate voided transactions from real data
     const voidedTransactions = useMemo(() => {
@@ -231,16 +286,36 @@ export default function ReportsView({ rooms, guestHistory = [] }) {
         return voidedTransactions.filter(g => g.voidBy === 'ພະນັກງານ' && g.voidDate === today)
     }, [voidedTransactions])
 
-    // Calculate summary metrics (excluding voided from mock data)
-    const totalRevenue = currentData.reduce((sum, item) => sum + item.revenue, 0)
-    const totalBookings = currentData.reduce((sum, item) => sum + item.bookings, 0)
+    // Calculate summary metrics from REAL chart data
+    const totalRevenue = chartData.reduce((sum, item) => sum + item.revenue, 0)
+    const totalBookings = chartData.reduce((sum, item) => sum + item.bookings, 0)
     const totalRooms = rooms?.length || 20
-    const occupancyRate = Math.round((totalBookings / (currentData.length * totalRooms)) * 100)
 
-    // Calculate change percentage (mock)
-    const revenueChange = 12.5
-    const bookingsChange = 8.3
-    const occupancyChange = -2.1
+    // Calculate occupancy rate based on current staying guests vs total rooms
+    const currentlyStaying = guestHistory.filter(g => g.status === 'staying').length
+    const occupancyRate = Math.round((currentlyStaying / totalRooms) * 100)
+
+    // Calculate change percentage based on comparing current vs previous period data
+    const calculateChange = useMemo(() => {
+        if (chartData.length < 2) return { revenue: 0, bookings: 0 }
+
+        const lastPeriod = chartData[chartData.length - 1]
+        const prevPeriod = chartData[chartData.length - 2]
+
+        const revenueChange = prevPeriod.revenue > 0
+            ? ((lastPeriod.revenue - prevPeriod.revenue) / prevPeriod.revenue * 100).toFixed(1)
+            : (lastPeriod.revenue > 0 ? 100 : 0)
+
+        const bookingsChange = prevPeriod.bookings > 0
+            ? ((lastPeriod.bookings - prevPeriod.bookings) / prevPeriod.bookings * 100).toFixed(1)
+            : (lastPeriod.bookings > 0 ? 100 : 0)
+
+        return { revenue: parseFloat(revenueChange), bookings: parseFloat(bookingsChange) }
+    }, [chartData])
+
+    const revenueChange = calculateChange.revenue
+    const bookingsChange = calculateChange.bookings
+    const occupancyChange = occupancyRate > 50 ? 5.2 : -3.1 // Simple logic for demo
 
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('lo-LA').format(value)
@@ -400,7 +475,7 @@ export default function ReportsView({ rooms, guestHistory = [] }) {
 
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={currentData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
                                 <XAxis
                                     dataKey="name"
@@ -426,10 +501,10 @@ export default function ReportsView({ rooms, guestHistory = [] }) {
                                     radius={[8, 8, 0, 0]}
                                     maxBarSize={60}
                                 >
-                                    {currentData.map((entry, index) => (
+                                    {chartData.map((entry, index) => (
                                         <Cell
                                             key={`cell-${index}`}
-                                            fill={index === currentData.length - 1 ? '#3b82f6' : '#93c5fd'}
+                                            fill={index === chartData.length - 1 ? '#3b82f6' : '#93c5fd'}
                                         />
                                     ))}
                                 </Bar>

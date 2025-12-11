@@ -31,12 +31,13 @@ const getTimeInfo = () => {
 export default function CheckoutView({ rooms, onRoomClick }) {
     const timeInfo = getTimeInfo()
 
-    // Get rooms due for checkout today
+    // Get rooms due for checkout today OR overdue (should have been checked out earlier)
     const dueRooms = useMemo(() => {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
 
         return rooms.filter(room => {
+            // MUST be occupied - strict check
             if (room.status !== 'occupied' || !room.checkInDate || !room.stayDuration) {
                 return false
             }
@@ -46,7 +47,8 @@ export default function CheckoutView({ rooms, onRoomClick }) {
             const checkoutDate = new Date(checkIn)
             checkoutDate.setDate(checkoutDate.getDate() + room.stayDuration)
 
-            return checkoutDate.getTime() === today.getTime()
+            // Include rooms due today AND overdue (checkout date is today or earlier)
+            return checkoutDate.getTime() <= today.getTime()
         })
     }, [rooms])
 

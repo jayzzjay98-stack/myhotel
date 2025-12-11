@@ -94,7 +94,7 @@ export default function QuickBooking({ rooms, onQuickBook }) {
 
     return (
         <div className="mt-8">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">ຈອງຫ້ອງດ່ວນ</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">ຈອງຫ້ອງດ່ວນ</h2>
             <div className="grid grid-cols-4 gap-4">
                 {quickBookOptions.map((option) => {
                     const count = getAvailableCount(option.filterType, option.filterValue)
@@ -115,11 +115,11 @@ export default function QuickBooking({ rooms, onQuickBook }) {
                                 <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
                             </div>
 
-                            <p className="font-semibold text-gray-800 dark:text-white mb-2">{option.label}</p>
+                            <p className="text-lg font-bold text-gray-800 dark:text-white mb-2">{option.label}</p>
 
                             <div className="flex items-center gap-2">
                                 <span className="text-4xl font-bold text-gray-800 dark:text-white">{count}</span>
-                                <span className="text-base text-gray-500 dark:text-gray-400">ຫ້ອງວ່າງ</span>
+                                <span className="text-lg text-gray-500 dark:text-gray-400">ຫ້ອງວ່າງ</span>
                             </div>
                         </button>
                     )

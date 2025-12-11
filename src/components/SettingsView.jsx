@@ -312,18 +312,6 @@ function RoomFormModal({ isOpen, room, onClose, onSave, isNew = false, existingR
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">₭</span>
                         </div>
-                        <div className="flex items-center justify-between mt-2">
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                ແນະນຳ: {formatPrice(suggestedPrice)}
-                            </p>
-                            <button
-                                type="button"
-                                onClick={applySuggestedPrice}
-                                className="text-xs text-blue-500 hover:text-blue-600 font-medium"
-                            >
-                                ໃຊ້ລາຄາແນະນຳ
-                            </button>
-                        </div>
                     </div>
 
                     {/* Status Note (for new rooms) */}
@@ -357,34 +345,38 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
     const [pinModal, setPinModal] = useState({ isOpen: false, action: '', roomId: null })
     const [editModal, setEditModal] = useState({ isOpen: false, room: null, isNew: false })
     const [pendingDelete, setPendingDelete] = useState(null)
+    const [filterFloor, setFilterFloor] = useState('all') // Floor filter
+
+    // Get unique floors from rooms
+    const uniqueFloors = [...new Set(rooms.map(r => r.floor || 1))].sort((a, b) => a - b)
 
     // Get list of existing room numbers for duplicate check
     const existingRoomNumbers = rooms.map(r => r.number)
 
     const handleAddClick = () => {
-        setPinModal({ isOpen: true, action: 'Add', roomId: null })
+        setPinModal({ isOpen: true, action: 'ເພີ່ມ', roomId: null })
         setEditModal({ isOpen: false, room: null, isNew: true })
     }
 
     const handleEditClick = (room) => {
-        setPinModal({ isOpen: true, action: 'Edit', roomId: room.id })
+        setPinModal({ isOpen: true, action: 'ແກ້ໄຂ', roomId: room.id })
         setEditModal({ isOpen: false, room, isNew: false })
     }
 
     const handleDeleteClick = (room) => {
-        setPinModal({ isOpen: true, action: 'Delete', roomId: room.id })
+        setPinModal({ isOpen: true, action: 'ລົບ', roomId: room.id })
         setPendingDelete(room)
     }
 
     const handlePinVerify = (success) => {
         if (success) {
-            if (pinModal.action === 'Add') {
+            if (pinModal.action === 'ເພີ່ມ') {
                 setPinModal({ isOpen: false, action: '', roomId: null })
                 setEditModal({ isOpen: true, room: null, isNew: true })
-            } else if (pinModal.action === 'Edit' && editModal.room) {
+            } else if (pinModal.action === 'ແກ້ໄຂ' && editModal.room) {
                 setPinModal({ isOpen: false, action: '', roomId: null })
                 setEditModal({ isOpen: true, room: editModal.room, isNew: false })
-            } else if (pinModal.action === 'Delete' && pendingDelete) {
+            } else if (pinModal.action === 'ລົບ' && pendingDelete) {
                 onDeleteRoom(pendingDelete.id)
                 setPinModal({ isOpen: false, action: '', roomId: null })
                 setPendingDelete(null)
@@ -432,74 +424,133 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
                     <h2 className="text-2xl font-bold text-gray-800 dark:text-white">ຕັ້ງຄ່າຫ້ອງ</h2>
                     <p className="text-gray-500 dark:text-gray-400">ຈັດການຫ້ອງ, ແກ້ໄຂລາຍລະອເອີຍດ, ຫລື ລົບຫ້ອງ</p>
                 </div>
-                <button
-                    onClick={handleAddClick}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 shadow-lg shadow-blue-500/25 transition-all"
-                >
-                    <Plus className="w-5 h-5" />
-                    ເພີ່ມຫ້ອງ
-                </button>
+                <div className="flex items-center gap-3">
+                    {/* Floor Filter */}
+                    <select
+                        value={filterFloor}
+                        onChange={(e) => setFilterFloor(e.target.value)}
+                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    >
+                        <option value="all">ທຸກຊັ້ນ</option>
+                        {uniqueFloors.map(floor => (
+                            <option key={floor} value={floor}>ຊັ້ນ {floor}</option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={handleAddClick}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 shadow-lg shadow-blue-500/25 transition-all"
+                    >
+                        <Plus className="w-5 h-5" />
+                        ເພີ່ມຫ້ອງ
+                    </button>
+                </div>
             </div>
 
-            {/* Room Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-700">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">ຫ້ອງ</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">ຊັ້ນ</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">ປະເພດ</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">ສະຖານະ</th>
-                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">ລາຄາ</th>
-                            <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-300">ດຳເນີນການ</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                        {rooms.map((room) => (
-                            <tr key={room.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                                <td className="px-6 py-4">
-                                    <span className="font-semibold text-gray-800 dark:text-white">{room.number}</span>
-                                </td>
-                                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">Floor {room.floor}</td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2">
-                                        {room.roomType?.includes('fan') ? (
-                                            <Fan className="w-4 h-4 text-orange-500" />
-                                        ) : (
-                                            <Snowflake className="w-4 h-4 text-blue-500" />
-                                        )}
-                                        <span className="text-gray-600 dark:text-gray-400">{getRoomTypeLabel(room.roomType)}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(room.status)}`}>
-                                        {room.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                    {new Intl.NumberFormat('lo-LA').format(room.price)} ₭
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex items-center justify-end gap-2">
-                                        <button
-                                            onClick={() => handleEditClick(room)}
-                                            className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+            {/* Floor-Based Admin Cards */}
+            <div className="space-y-8">
+                {Object.entries(
+                    rooms
+                        .filter(room => filterFloor === 'all' || (room.floor || 1) === Number(filterFloor))
+                        .reduce((acc, room) => {
+                            const floor = room.floor || 1
+                            if (!acc[floor]) acc[floor] = []
+                            acc[floor].push(room)
+                            return acc
+                        }, {})
+                )
+                    .sort(([a], [b]) => Number(a) - Number(b))
+                    .map(([floor, floorRooms]) => (
+                        <div key={floor} className="space-y-4">
+                            {/* Floor Header */}
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                                    <span className="text-white font-bold text-lg">{floor}</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-800 dark:text-white">ຊັ້ນ {floor}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{floorRooms.length} ຫ້ອງ</p>
+                                </div>
+                            </div>
+
+                            {/* Room Cards Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {floorRooms.map((room) => {
+                                    const isFan = room.roomType?.includes('fan')
+                                    const isDouble = room.roomType?.includes('double')
+                                    const statusLabel = room.status === 'available' ? 'ຫ້ອງວ່າງ' : room.status === 'occupied' ? 'ມີຄົນພັກ' : room.status === 'reserved' ? 'ຈອງແລ້ວ' : 'ກຳລັງທຳຄວາມສະອາດ'
+
+                                    return (
+                                        <div
+                                            key={room.id}
+                                            className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all overflow-hidden group"
                                         >
-                                            <Pencil className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteClick(room)}
-                                            disabled={room.status === 'occupied'}
-                                            className="p-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                            {/* Card Content */}
+                                            <div className="p-5">
+                                                {/* Room Number */}
+                                                <div className="text-center mb-4">
+                                                    <p className="text-4xl font-extrabold text-gray-800 dark:text-white">{room.number}</p>
+                                                    <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}>
+                                                        {statusLabel}
+                                                    </span>
+                                                </div>
+
+                                                {/* Room Details */}
+                                                <div className="space-y-3">
+                                                    {/* Type Icons */}
+                                                    <div className="flex items-center justify-center gap-3">
+                                                        <div className={`p-2 rounded-lg ${isFan ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
+                                                            {isFan ? (
+                                                                <Fan className="w-5 h-5 text-orange-500" />
+                                                            ) : (
+                                                                <Snowflake className="w-5 h-5 text-blue-500" />
+                                                            )}
+                                                        </div>
+                                                        <div className={`p-2 rounded-lg ${isDouble ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
+                                                            {isDouble ? (
+                                                                <BedDouble className={`w-5 h-5 ${isDouble ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                                            ) : (
+                                                                <Bed className="w-5 h-5 text-emerald-500" />
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Room Type Label */}
+                                                    <p className="text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                                                        {getRoomTypeLabel(room.roomType)}
+                                                    </p>
+
+                                                    {/* Price */}
+                                                    <p className="text-center text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                                                        {new Intl.NumberFormat('lo-LA').format(room.price)} ₭
+                                                        <span className="text-xs font-normal text-gray-500 dark:text-gray-400">/ຄືນ</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Bar */}
+                                            <div className="flex border-t border-gray-100 dark:border-slate-700">
+                                                <button
+                                                    onClick={() => handleEditClick(room)}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-medium text-sm transition-colors"
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                    ແກ້ໄຂ
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(room)}
+                                                    disabled={room.status === 'occupied'}
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-l border-gray-100 dark:border-slate-700"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                    ລົບ
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    ))}
             </div>
 
             {/* Modals */}

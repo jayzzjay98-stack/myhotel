@@ -264,13 +264,20 @@ function GuestDetailModal({ guest, onClose, onVoid }) {
                         </div>
                         <div className="bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/30 dark:to-rose-800/20 rounded-xl p-4 text-center border border-rose-200 dark:border-rose-700">
                             <Clock className="w-6 h-6 text-rose-600 dark:text-rose-400 mx-auto mb-2" />
-                            <p className="text-sm font-medium text-rose-600 dark:text-rose-400 mb-1">ເຊັກເອົ້າ</p>
-                            <p className={`text-base font-bold ${isVoided ? 'text-gray-400 dark:text-gray-500' : 'text-rose-700 dark:text-rose-300'}`}>{formatDate(guest.checkOutDate)}</p>
-                            {guest.checkOutTime && (
-                                <p className="text-lg font-bold text-rose-800 dark:text-rose-200 mt-1">
-                                    🕐 {formatTime(guest.checkOutTime)} ໂມງ
-                                </p>
-                            )}
+                            <p className="text-sm font-medium text-rose-600 dark:text-rose-400 mb-1">
+                                {guest.status === 'staying' ? 'ກຳນົດເຊັກເອົ້າ' : 'ເຊັກເອົ້າ'}
+                            </p>
+                            <p className={`text-base font-bold ${isVoided ? 'text-gray-400 dark:text-gray-500' : 'text-rose-700 dark:text-rose-300'}`}>
+                                {guest.checkOutDate
+                                    ? formatDate(guest.checkOutDate)
+                                    : guest.checkInDate && guest.stayDuration
+                                        ? formatDate(new Date(new Date(guest.checkInDate).getTime() + guest.stayDuration * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+                                        : '-'
+                                }
+                            </p>
+                            <p className="text-lg font-bold text-rose-800 dark:text-rose-200 mt-1">
+                                🕐 {guest.checkOutTime ? formatTime(guest.checkOutTime) : '11:00'} ໂມງ
+                            </p>
                         </div>
                         <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-700">
                             <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
@@ -329,10 +336,20 @@ export default function GuestListView({ guestHistory, onVoidTransaction }) {
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedGuest, setSelectedGuest] = useState(null)
     const [voidingGuest, setVoidingGuest] = useState(null)
+    const [statusFilter, setStatusFilter] = useState('all') // Status tab filter
 
     // Filter guests
     const filteredGuests = useMemo(() => {
         return guestHistory.filter((guest) => {
+            // Status tab filter
+            let matchesStatus = true
+            if (statusFilter === 'staying') {
+                matchesStatus = guest.status === 'staying'
+            } else if (statusFilter === 'history') {
+                matchesStatus = guest.status === 'checked-out' || guest.status === 'void'
+            }
+            // 'all' shows everything
+
             // Search filter (name, phone, passport)
             const searchLower = searchTerm.toLowerCase()
             const matchesSearch =
@@ -346,9 +363,9 @@ export default function GuestListView({ guestHistory, onVoidTransaction }) {
                 dateFilter === '' ||
                 (guest.checkInDate && guest.checkInDate.includes(dateFilter))
 
-            return matchesSearch && matchesDate
+            return matchesStatus && matchesSearch && matchesDate
         })
-    }, [guestHistory, searchTerm, dateFilter])
+    }, [guestHistory, searchTerm, dateFilter, statusFilter])
 
     // Pagination
     const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE)
@@ -410,6 +427,45 @@ export default function GuestListView({ guestHistory, onVoidTransaction }) {
 
             {/* Search & Filter */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+                {/* Status Tabs */}
+                <div className="flex items-center justify-center gap-2 mb-4">
+                    {[
+                        { key: 'all', label: 'ທັງໝົດ', count: guestHistory.length, color: 'blue' },
+                        { key: 'staying', label: 'ກຳລັງພັກ', count: guestHistory.filter(g => g.status === 'staying').length, color: 'emerald' },
+                        { key: 'history', label: 'ປະຫວັດ/ອອກແລ້ວ', count: guestHistory.filter(g => g.status === 'checked-out' || g.status === 'void').length, color: 'gray' }
+                    ].map(tab => {
+                        const isActive = statusFilter === tab.key
+                        const colorClasses = {
+                            blue: isActive
+                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50',
+                            emerald: isActive
+                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                                : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50',
+                            gray: isActive
+                                ? 'bg-gray-500 text-white shadow-lg shadow-gray-500/30'
+                                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-600'
+                        }
+                        return (
+                            <button
+                                key={tab.key}
+                                onClick={() => { setStatusFilter(tab.key); setCurrentPage(1) }}
+                                className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${colorClasses[tab.color]}`}
+                            >
+                                {tab.label}
+                                <span className={`px-2 py-0.5 rounded-full text-xs ${isActive
+                                    ? 'bg-white/20 text-white'
+                                    : tab.color === 'gray'
+                                        ? 'bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-gray-400'
+                                        : `bg-${tab.color}-100 dark:bg-${tab.color}-900/50 text-${tab.color}-600 dark:text-${tab.color}-400`
+                                    }`}>
+                                    {tab.count}
+                                </span>
+                            </button>
+                        )
+                    })}
+                </div>
+
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                     {/* Search Input */}
                     <div className="relative flex-1">
@@ -434,7 +490,6 @@ export default function GuestListView({ guestHistory, onVoidTransaction }) {
                         />
                     </div>
 
-                    {/* Clear Filters */}
                     {(searchTerm || dateFilter) && (
                         <button
                             onClick={() => { setSearchTerm(''); setDateFilter(''); setCurrentPage(1) }}
