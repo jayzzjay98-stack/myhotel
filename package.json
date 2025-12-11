@@ -1,16 +1,27 @@
 {
-  "name": "hotel-management",
+  "name": "stayflow-hotel-manager",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
+  "author": "StayFlow Team",
+  "description": "Hotel Management System - StayFlow",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "vite build && electron-builder",
+    "electron:pack": "electron-builder --dir",
+    "build:win": "vite build && electron-builder --win"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.87.1",
+    "crypto-js": "^4.2.0",
+    "electron-store": "^11.0.2",
     "lucide-react": "^0.556.0",
+    "node-machine-id": "^1.1.12",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.5.1"
@@ -21,14 +32,42 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "concurrently": "^9.2.1",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "tailwindcss": "^4.1.17",
-    "vite": "npm:rolldown-vite@7.2.5"
+    "vite": "npm:rolldown-vite@7.2.5",
+    "wait-on": "^9.0.3"
   },
   "overrides": {
     "vite": "npm:rolldown-vite@7.2.5"
+  },
+  "build": {
+    "appId": "com.stayflow.hotel",
+    "productName": "StayFlow Hotel Manager",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }

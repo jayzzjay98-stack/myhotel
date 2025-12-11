@@ -1,10 +1,10 @@
+/* Custom fonts - Noto Sans Lao for Lao text */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Lao:wght@300;400;500;600;700;800&display=swap');
+
 @import "tailwindcss";
 
 /* Enable dark mode via class strategy */
 @custom-variant dark (&:where(.dark, .dark *));
-
-/* Custom fonts - Noto Sans Lao for Lao text */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Lao:wght@300;400;500;600;700;800&display=swap');
 
 /* Base styles */
 * {

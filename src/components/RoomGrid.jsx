@@ -18,10 +18,10 @@ export default function RoomGrid({ roomsByFloor, onRoomClick, isSelectionMode = 
                 <div key={floor} className="space-y-4">
                     {/* Floor Header */}
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
-                            <span className="text-base font-bold text-gray-600 dark:text-gray-300">{floor}</span>
+                        <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">{floor}</span>
                         </div>
-                        <h3 className="text-base font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">ຊັ້ນ {floor}</h3>
+                        <h3 className="text-xl font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wide">ຊັ້ນ {floor}</h3>
                         <div className="flex-1 h-px bg-gray-100 dark:bg-slate-700"></div>
                         <span className="text-sm text-gray-400 dark:text-gray-500">{roomsByFloor[floor].length} ຫ້ອງ</span>
                     </div>

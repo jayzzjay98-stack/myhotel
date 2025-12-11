@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
-import { X, Lock, Eye, EyeOff, Check, AlertCircle, Pencil, Trash2, Bed, BedDouble, Fan, Snowflake, Plus } from 'lucide-react'
+import { X, Lock, Eye, EyeOff, Check, AlertCircle, Pencil, Trash2, Bed, BedDouble, Fan, Snowflake, Plus, ArrowLeft, Database, Settings, ChevronRight } from 'lucide-react'
 
-const CORRECT_PIN = '12345'
+// Dual PIN System
+const MASTER_PIN = '12345'  // ຜູ້ດູແລ/ເຈົ້າຂອງ (Admin/Owner) - Full Access
+const STAFF_PIN = '1111'    // ພະນັກງານ (Staff) - Limited Access
+const CORRECT_PIN = MASTER_PIN  // For backward compatibility
 
 // Default room prices mapping
 const defaultPrices = {
@@ -342,10 +345,19 @@ function RoomFormModal({ isOpen, room, onClose, onSave, isNew = false, existingR
 }
 
 export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoom }) {
+    // Sub-menu navigation state: null = main menu, 'rooms' = room management, 'system' = system & data
+    const [activeSection, setActiveSection] = useState(null)
+
     const [pinModal, setPinModal] = useState({ isOpen: false, action: '', roomId: null })
     const [editModal, setEditModal] = useState({ isOpen: false, room: null, isNew: false })
     const [pendingDelete, setPendingDelete] = useState(null)
     const [filterFloor, setFilterFloor] = useState('all') // Floor filter
+
+    // Clear Data Modal State (requires Admin PIN)
+    const [clearDataModal, setClearDataModal] = useState(false)
+    const [clearDataPin, setClearDataPin] = useState('')
+    const [clearDataError, setClearDataError] = useState('')
+    const [showClearDataPin, setShowClearDataPin] = useState(false)
 
     // Get unique floors from rooms
     const uniqueFloors = [...new Set(rooms.map(r => r.floor || 1))].sort((a, b) => a - b)
@@ -418,142 +430,367 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">ຕັ້ງຄ່າຫ້ອງ</h2>
-                    <p className="text-gray-500 dark:text-gray-400">ຈັດການຫ້ອງ, ແກ້ໄຂລາຍລະອເອີຍດ, ຫລື ລົບຫ້ອງ</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    {/* Floor Filter */}
-                    <select
-                        value={filterFloor}
-                        onChange={(e) => setFilterFloor(e.target.value)}
-                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    >
-                        <option value="all">ທຸກຊັ້ນ</option>
-                        {uniqueFloors.map(floor => (
-                            <option key={floor} value={floor}>ຊັ້ນ {floor}</option>
-                        ))}
-                    </select>
-                    <button
-                        onClick={handleAddClick}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 shadow-lg shadow-blue-500/25 transition-all"
-                    >
-                        <Plus className="w-5 h-5" />
-                        ເພີ່ມຫ້ອງ
-                    </button>
-                </div>
-            </div>
+            {/* ===================== MAIN MENU ===================== */}
+            {activeSection === null && (
+                <>
+                    {/* Header */}
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">ຕັ້ງຄ່າ</h2>
+                        <p className="text-gray-500 dark:text-gray-400">ເລືອກໝວດໝູ່ທີ່ຕ້ອງການຈັດການ</p>
+                    </div>
 
-            {/* Floor-Based Admin Cards */}
-            <div className="space-y-8">
-                {Object.entries(
-                    rooms
-                        .filter(room => filterFloor === 'all' || (room.floor || 1) === Number(filterFloor))
-                        .reduce((acc, room) => {
-                            const floor = room.floor || 1
-                            if (!acc[floor]) acc[floor] = []
-                            acc[floor].push(room)
-                            return acc
-                        }, {})
-                )
-                    .sort(([a], [b]) => Number(a) - Number(b))
-                    .map(([floor, floorRooms]) => (
-                        <div key={floor} className="space-y-4">
-                            {/* Floor Header */}
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                                    <span className="text-white font-bold text-lg">{floor}</span>
+                    {/* Menu Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Card 1: Room Management */}
+                        <button
+                            onClick={() => setActiveSection('rooms')}
+                            className="group p-8 bg-white dark:bg-slate-800 rounded-2xl border-2 border-gray-100 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all shadow-lg hover:shadow-xl hover:shadow-blue-500/10 text-left"
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                                    <BedDouble className="w-8 h-8 text-white" />
                                 </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-800 dark:text-white">ຊັ້ນ {floor}</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">{floorRooms.length} ຫ້ອງ</p>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        ຈັດການຫ້ອງພັກ
+                                    </h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        ເພີ່ມ, ແກ້ໄຂ, ຫລື ລົບຂໍ້ມູນຫ້ອງ
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-3 text-blue-500">
+                                        <span className="text-sm font-medium">{rooms.length} ຫ້ອງ</span>
+                                        <ChevronRight className="w-4 h-4" />
+                                    </div>
                                 </div>
                             </div>
+                        </button>
 
-                            {/* Room Cards Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {floorRooms.map((room) => {
-                                    const isFan = room.roomType?.includes('fan')
-                                    const isDouble = room.roomType?.includes('double')
-                                    const statusLabel = room.status === 'available' ? 'ຫ້ອງວ່າງ' : room.status === 'occupied' ? 'ມີຄົນພັກ' : room.status === 'reserved' ? 'ຈອງແລ້ວ' : 'ກຳລັງທຳຄວາມສະອາດ'
+                        {/* Card 2: System & Data */}
+                        <button
+                            onClick={() => setActiveSection('system')}
+                            className="group p-8 bg-white dark:bg-slate-800 rounded-2xl border-2 border-gray-100 dark:border-slate-700 hover:border-rose-500 dark:hover:border-rose-500 transition-all shadow-lg hover:shadow-xl hover:shadow-rose-500/10 text-left"
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-transform">
+                                    <Database className="w-8 h-8 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                                        ລະບົບ & ຂໍ້ມູນ
+                                    </h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        ລ້າງຂໍ້ມູນ, ຕັ້ງຄ່າຄືນໃໝ່
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-3 text-rose-500">
+                                        <span className="text-sm font-medium">ຈັດການລະບົບ</span>
+                                        <ChevronRight className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </>
+            )}
 
-                                    return (
-                                        <div
-                                            key={room.id}
-                                            className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all overflow-hidden group"
-                                        >
-                                            {/* Card Content */}
-                                            <div className="p-5">
-                                                {/* Room Number */}
-                                                <div className="text-center mb-4">
-                                                    <p className="text-4xl font-extrabold text-gray-800 dark:text-white">{room.number}</p>
-                                                    <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}>
-                                                        {statusLabel}
-                                                    </span>
-                                                </div>
+            {/* ===================== ROOM MANAGEMENT SECTION ===================== */}
+            {activeSection === 'rooms' && (
+                <>
+                    {/* Back Button + Header */}
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setActiveSection(null)}
+                            className="p-2 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        </button>
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">ຈັດການຫ້ອງພັກ</h2>
+                            <p className="text-gray-500 dark:text-gray-400">ເພີ່ມ, ແກ້ໄຂລາຍລະອຽດ, ຫລື ລົບຫ້ອງ</p>
+                        </div>
+                    </div>
 
-                                                {/* Room Details */}
-                                                <div className="space-y-3">
-                                                    {/* Type Icons */}
-                                                    <div className="flex items-center justify-center gap-3">
-                                                        <div className={`p-2 rounded-lg ${isFan ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
-                                                            {isFan ? (
-                                                                <Fan className="w-5 h-5 text-orange-500" />
-                                                            ) : (
-                                                                <Snowflake className="w-5 h-5 text-blue-500" />
-                                                            )}
+                    {/* Room Controls */}
+                    <div className="flex items-center justify-end gap-3">
+                        {/* Floor Filter */}
+                        <select
+                            value={filterFloor}
+                            onChange={(e) => setFilterFloor(e.target.value)}
+                            className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-700 dark:text-gray-300 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        >
+                            <option value="all">ທຸກຊັ້ນ</option>
+                            {uniqueFloors.map(floor => (
+                                <option key={floor} value={floor}>ຊັ້ນ {floor}</option>
+                            ))}
+                        </select>
+                        <button
+                            onClick={handleAddClick}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 shadow-lg shadow-blue-500/25 transition-all"
+                        >
+                            <Plus className="w-5 h-5" />
+                            ເພີ່ມຫ້ອງ
+                        </button>
+                    </div>
+
+                    {/* Floor-Based Admin Cards */}
+                    <div className="space-y-8">
+                        {Object.entries(
+                            rooms
+                                .filter(room => filterFloor === 'all' || (room.floor || 1) === Number(filterFloor))
+                                .reduce((acc, room) => {
+                                    const floor = room.floor || 1
+                                    if (!acc[floor]) acc[floor] = []
+                                    acc[floor].push(room)
+                                    return acc
+                                }, {})
+                        )
+                            .sort(([a], [b]) => Number(a) - Number(b))
+                            .map(([floor, floorRooms]) => (
+                                <div key={floor} className="space-y-4">
+                                    {/* Floor Header */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                                            <span className="text-white font-bold text-lg">{floor}</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-800 dark:text-white">ຊັ້ນ {floor}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">{floorRooms.length} ຫ້ອງ</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Room Cards Grid */}
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {floorRooms.map((room) => {
+                                            const isFan = room.roomType?.includes('fan')
+                                            const isDouble = room.roomType?.includes('double')
+                                            const statusLabel = room.status === 'available' ? 'ຫ້ອງວ່າງ' : room.status === 'occupied' ? 'ມີຄົນພັກ' : room.status === 'reserved' ? 'ຈອງແລ້ວ' : 'ກຳລັງທຳຄວາມສະອາດ'
+
+                                            return (
+                                                <div
+                                                    key={room.id}
+                                                    className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all overflow-hidden group"
+                                                >
+                                                    {/* Card Content */}
+                                                    <div className="p-5">
+                                                        {/* Room Number */}
+                                                        <div className="text-center mb-4">
+                                                            <p className="text-4xl font-extrabold text-gray-800 dark:text-white">{room.number}</p>
+                                                            <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}>
+                                                                {statusLabel}
+                                                            </span>
                                                         </div>
-                                                        <div className={`p-2 rounded-lg ${isDouble ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
-                                                            {isDouble ? (
-                                                                <BedDouble className={`w-5 h-5 ${isDouble ? 'text-purple-500' : 'text-emerald-500'}`} />
-                                                            ) : (
-                                                                <Bed className="w-5 h-5 text-emerald-500" />
-                                                            )}
+
+                                                        {/* Room Details */}
+                                                        <div className="space-y-3">
+                                                            {/* Type Icons */}
+                                                            <div className="flex items-center justify-center gap-3">
+                                                                <div className={`p-2 rounded-lg ${isFan ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
+                                                                    {isFan ? (
+                                                                        <Fan className="w-5 h-5 text-orange-500" />
+                                                                    ) : (
+                                                                        <Snowflake className="w-5 h-5 text-blue-500" />
+                                                                    )}
+                                                                </div>
+                                                                <div className={`p-2 rounded-lg ${isDouble ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
+                                                                    {isDouble ? (
+                                                                        <BedDouble className={`w-5 h-5 ${isDouble ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                                                    ) : (
+                                                                        <Bed className="w-5 h-5 text-emerald-500" />
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Room Type Label */}
+                                                            <p className="text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                                                                {getRoomTypeLabel(room.roomType)}
+                                                            </p>
+
+                                                            {/* Price */}
+                                                            <p className="text-center text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                                                                {new Intl.NumberFormat('lo-LA').format(room.price)} ₭
+                                                                <span className="text-xs font-normal text-gray-500 dark:text-gray-400">/ຄືນ</span>
+                                                            </p>
                                                         </div>
                                                     </div>
 
-                                                    {/* Room Type Label */}
-                                                    <p className="text-center text-sm font-medium text-gray-600 dark:text-gray-400">
-                                                        {getRoomTypeLabel(room.roomType)}
-                                                    </p>
-
-                                                    {/* Price */}
-                                                    <p className="text-center text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                                                        {new Intl.NumberFormat('lo-LA').format(room.price)} ₭
-                                                        <span className="text-xs font-normal text-gray-500 dark:text-gray-400">/ຄືນ</span>
-                                                    </p>
+                                                    {/* Action Bar */}
+                                                    <div className="flex border-t border-gray-100 dark:border-slate-700">
+                                                        <button
+                                                            onClick={() => handleEditClick(room)}
+                                                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-medium text-sm transition-colors"
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                            ແກ້ໄຂ
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(room)}
+                                                            disabled={room.status === 'occupied'}
+                                                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-l border-gray-100 dark:border-slate-700"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                            ລົບ
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                    </div>
+                </>
+            )}
 
-                                            {/* Action Bar */}
-                                            <div className="flex border-t border-gray-100 dark:border-slate-700">
-                                                <button
-                                                    onClick={() => handleEditClick(room)}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-medium text-sm transition-colors"
-                                                >
-                                                    <Pencil className="w-4 h-4" />
-                                                    ແກ້ໄຂ
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteClick(room)}
-                                                    disabled={room.status === 'occupied'}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-l border-gray-100 dark:border-slate-700"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                    ລົບ
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
+            {/* ===================== SYSTEM & DATA SECTION ===================== */}
+            {activeSection === 'system' && (
+                <>
+                    {/* Back Button + Header */}
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setActiveSection(null)}
+                            className="p-2 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        </button>
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">ລະບົບ & ຂໍ້ມູນ</h2>
+                            <p className="text-gray-500 dark:text-gray-400">ຕັ້ງຄ່າລະບົບ ແລະ ລ້າງຂໍ້ມູນ</p>
+                        </div>
+                    </div>
+
+                    {/* Clear Transaction Data Card */}
+                    <div className="bg-rose-50 dark:bg-rose-900/20 rounded-2xl p-6 border-2 border-rose-200 dark:border-rose-800">
+                        <div className="flex items-start gap-4">
+                            <div className="w-14 h-14 bg-rose-100 dark:bg-rose-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <AlertCircle className="w-7 h-7 text-rose-600 dark:text-rose-400" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold text-rose-800 dark:text-rose-200">ລ້າງຂໍ້ມູນລູກຄ້າ & ການຈອງ</h3>
+                                <p className="text-base text-rose-600 dark:text-rose-400 mt-2">
+                                    ລ້າງປະຫວັດລູກຄ້າທັງໝົດ ແລະ ຕັ້ງຄ່າຫ້ອງເປັນ "ຫວ່າງ" ທຸກຫ້ອງ.
+                                    <br />
+                                    <strong>ໝາຍເຫດ:</strong> ຈະບໍ່ລົບຫ້ອງທີ່ເພີ່ມມາ, ພຽງແຕ່ reset ສະຖານະເທົ່ານັ້ນ.
+                                </p>
+                                <div className="mt-4 p-4 bg-rose-100 dark:bg-rose-900/40 rounded-lg">
+                                    <p className="text-lg text-rose-700 dark:text-rose-300 font-bold">
+                                        ⚠️ ການກະທຳນີ້ບໍ່ສາມາດຍົກເລີກໄດ້!
+                                    </p>
+                                </div>
+                                <div className="mt-3 p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                                    <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
+                                        🔐 ຕ້ອງໃຊ້ລະຫັດຜູ້ດູແລ (Admin PIN) ເທົ່ານັ້ນ - ພະນັກງານບໍ່ສາມາດລ້າງຂໍ້ມູນໄດ້
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setClearDataModal(true)
+                                        setClearDataPin('')
+                                        setClearDataError('')
+                                    }}
+                                    className="mt-4 px-6 py-3 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/25 flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                    ລ້າງຂໍ້ມູນລູກຄ້າ & ການຈອງ (Clear All Transaction Data)
+                                </button>
                             </div>
                         </div>
-                    ))}
-            </div>
+                    </div>
+                </>
+            )}
 
-            {/* Modals */}
+            {/* Clear Data Admin PIN Modal */}
+            {clearDataModal && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60" onClick={() => setClearDataModal(false)} />
+                    <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-slideUp">
+                        <div className="p-6 bg-rose-50 dark:bg-rose-900/30 border-b border-rose-100 dark:border-rose-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/50 rounded-full flex items-center justify-center">
+                                    <Lock className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-rose-800 dark:text-rose-200">ຢືນຢັນລະຫັດຜູ້ດູແລ</h3>
+                                    <p className="text-sm text-rose-600 dark:text-rose-400">ປ້ອນລະຫັດ Admin PIN ເພື່ອລ້າງຂໍ້ມູນ</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                                <p className="text-sm text-amber-700 dark:text-amber-300">
+                                    🔐 <strong>ໝາຍເຫດ:</strong> ລະຫັດພະນັກງານ (Staff PIN) ບໍ່ສາມາດໃຊ້ໄດ້
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    ລະຫັດຜູ້ດູແລ (Admin PIN) *
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showClearDataPin ? 'text' : 'password'}
+                                        value={clearDataPin}
+                                        onChange={(e) => {
+                                            setClearDataPin(e.target.value)
+                                            setClearDataError('')
+                                        }}
+                                        placeholder="ປ້ອນລະຫັດ 5 ຕົວເລກ"
+                                        className="w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-700 border-2 border-gray-200 dark:border-slate-600 rounded-xl text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+                                        maxLength={5}
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowClearDataPin(!showClearDataPin)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showClearDataPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {clearDataError && (
+                                <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 text-sm">
+                                    <AlertCircle className="w-4 h-4" />
+                                    {clearDataError}
+                                </div>
+                            )}
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setClearDataModal(false)}
+                                    className="flex-1 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                                >
+                                    ຍົກເລີກ
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        // Only MASTER_PIN (Admin) can clear data
+                                        if (clearDataPin === MASTER_PIN) {
+                                            setClearDataModal(false)
+                                            if (window.electronAPI && window.electronAPI.clearData) {
+                                                await window.electronAPI.clearData()
+                                            } else {
+                                                localStorage.clear()
+                                                window.location.reload()
+                                            }
+                                        } else if (clearDataPin === STAFF_PIN) {
+                                            setClearDataError('ລະຫັດພະນັກງານບໍ່ມີສິດລ້າງຂໍ້ມູນ! ຕ້ອງໃຊ້ລະຫັດຜູ້ດູແລເທົ່ານັ້ນ')
+                                        } else {
+                                            setClearDataError('ລະຫັດ PIN ບໍ່ຖືກຕ້ອງ')
+                                        }
+                                    }}
+                                    className="flex-1 py-3 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Check className="w-5 h-5" />
+                                    ຢືນຢັນລ້າງຂໍ້ມູນ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modals (shared across all sections) */}
             <PinModal
                 isOpen={pinModal.isOpen}
                 onClose={handlePinClose}

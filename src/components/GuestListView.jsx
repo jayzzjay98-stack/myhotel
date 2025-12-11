@@ -330,7 +330,7 @@ function GuestDetailModal({ guest, onClose, onVoid }) {
     )
 }
 
-export default function GuestListView({ guestHistory, onVoidTransaction }) {
+export default function GuestListView({ guestHistory, setGuestHistory }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [dateFilter, setDateFilter] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
@@ -345,24 +345,15 @@ export default function GuestListView({ guestHistory, onVoidTransaction }) {
             let matchesStatus = true
             if (statusFilter === 'staying') {
                 matchesStatus = guest.status === 'staying'
-            } else if (statusFilter === 'history') {
-                matchesStatus = guest.status === 'checked-out' || guest.status === 'void'
+            } else if (statusFilter === 'checked-out') {
+                matchesStatus = guest.status === 'checked-out'
+            } else if (statusFilter === 'void') {
+                matchesStatus = guest.status === 'void'
             }
-            // 'all' shows everything
 
-            // Search filter (name, phone, passport)
-            const searchLower = searchTerm.toLowerCase()
-            const matchesSearch =
-                searchTerm === '' ||
-                (guest.guestName && guest.guestName.toLowerCase().includes(searchLower)) ||
-                (guest.phone && guest.phone.includes(searchTerm)) ||
-                (guest.passport && guest.passport.toLowerCase().includes(searchLower))
-
-            // Date filter
-            const matchesDate =
-                dateFilter === '' ||
-                (guest.checkInDate && guest.checkInDate.includes(dateFilter))
-
+            const matchesSearch = guest.guestName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                guest.roomNumber?.includes(searchTerm)
+            const matchesDate = !dateFilter || guest.checkInDate === dateFilter
             return matchesStatus && matchesSearch && matchesDate
         })
     }, [guestHistory, searchTerm, dateFilter, statusFilter])
@@ -371,6 +362,11 @@ export default function GuestListView({ guestHistory, onVoidTransaction }) {
     const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE)
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
     const paginatedGuests = filteredGuests.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+
+    // Reset page when filters change
+    useMemo(() => {
+        setCurrentPage(1)
+    }, [searchTerm, dateFilter, statusFilter])
 
     // Lao months
     const laoMonths = ['ມັງກອນ', 'ກຸມພາ', 'ມີນາ', 'ເມສາ', 'ພຶດສະພາ', 'ມິຖຸນາ', 'ກໍລະກົດ', 'ສິງຫາ', 'ກັນຍາ', 'ຕຸລາ', 'ພະຈິກ', 'ທັນວາ']
@@ -411,9 +407,18 @@ export default function GuestListView({ guestHistory, onVoidTransaction }) {
     }
 
     const handleVoidConfirm = (guestId, reason, authorizer) => {
-        if (onVoidTransaction) {
-            onVoidTransaction(guestId, reason, authorizer)
-        }
+        // Update guest history directly
+        setGuestHistory(prev => prev.map(g =>
+            g.id === guestId
+                ? {
+                    ...g,
+                    status: 'void',
+                    voidReason: reason,
+                    voidBy: authorizer,
+                    voidDate: new Date().toISOString().split('T')[0]
+                }
+                : g
+        ))
         setVoidingGuest(null)
     }
 

@@ -106,6 +106,9 @@ export default function RoomActionModal({
     const [cancelError, setCancelError] = useState('')
     const [cancelReason, setCancelReason] = useState('')
 
+    // Payment confirmation state for unpaid reservations
+    const [markAsPaid, setMarkAsPaid] = useState(false)
+
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
@@ -519,14 +522,15 @@ export default function RoomActionModal({
                                 <span className="font-medium text-gray-700 dark:text-gray-300">{formatPrice(newTotal)}</span>
                             </div>
                             <div className="border-t border-gray-200 dark:border-slate-600 pt-3 flex items-center justify-between">
-                                <span className="font-bold text-gray-700 dark:text-gray-300">
-                                    {extraCharge > 0 ? 'ຕ້ອງຈ່າຍເພີ່ມ' : extraCharge < 0 ? 'ໄດ້ເງິນຄືນ' : 'ບໍ່ມີການປ່ຽນແປງ'}
+                                <span className={`font-bold ${extraCharge > 0 ? 'text-rose-600 dark:text-rose-400' :
+                                    extraCharge < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                                    {extraCharge > 0 ? '💸 ຕ້ອງຈ່າຍເພີ່ມ' : extraCharge < 0 ? '💰 ໄດ້ເງິນຄືນ' : '✓ ບໍ່ມີການປ່ຽນແປງ'}
                                 </span>
                                 <span className={`text-2xl font-bold ${extraCharge > 0 ? 'text-rose-600 dark:text-rose-400' :
                                     extraCharge < 0 ? 'text-emerald-600 dark:text-emerald-400' :
                                         'text-gray-500'
                                     }`}>
-                                    {extraCharge > 0 ? '+' : ''}{formatPrice(extraCharge)}
+                                    {formatPrice(Math.abs(extraCharge))}
                                 </span>
                             </div>
                         </div>
@@ -925,6 +929,38 @@ export default function RoomActionModal({
                 </div>
             </div>
 
+            {/* Payment Warning for Unpaid Reservations */}
+            {room.paymentStatus === 'Unpaid' && (
+                <div className="space-y-3">
+                    {/* Warning Banner */}
+                    <div className="p-4 bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 rounded-xl">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+                                <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-rose-700 dark:text-rose-300">⚠️ ຍັງຄ້າງຊຳລະ (Payment Pending)</p>
+                                <p className="text-sm text-rose-600 dark:text-rose-400">ລູກຄ້າຍັງບໍ່ໄດ້ຊຳລະເງິນ</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mark as Paid Checkbox */}
+                    <label className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={markAsPaid}
+                            onChange={(e) => setMarkAsPaid(e.target.checked)}
+                            className="w-5 h-5 text-emerald-600 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded focus:ring-emerald-500 focus:ring-2"
+                        />
+                        <div>
+                            <p className="font-semibold text-emerald-700 dark:text-emerald-300">💸 ຮັບຊຳລະເງິນດຽວນີ້ (Mark as Paid)</p>
+                            <p className="text-sm text-emerald-600 dark:text-emerald-400">ຕິກເພື່ອອັບເດດສະຖານະເປັນ "ຈ່າຍແລ້ວ"</p>
+                        </div>
+                    </label>
+                </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex gap-3 pt-2">
                 <button
@@ -937,7 +973,7 @@ export default function RoomActionModal({
                 </button>
                 <button
                     type="button"
-                    onClick={() => onConfirmReservation(room.id)}
+                    onClick={() => onConfirmReservation(room.id, markAsPaid)}
                     className="flex-1 py-3 px-4 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
                 >
                     <LogIn className="w-5 h-5" />

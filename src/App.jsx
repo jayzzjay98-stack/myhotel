@@ -10,6 +10,7 @@ import GuestListView from './components/GuestListView'
 import ReportsView from './components/ReportsView'
 import CheckoutView from './components/CheckoutView'
 import VoidListView from './components/VoidListView'
+import ActivationScreen from './components/ActivationScreen'
 import { ToastContainer } from './components/Toast'
 
 // Room Type Pricing (LAK)
@@ -27,56 +28,36 @@ const getDateString = (daysOffset = 0) => {
   return date.toISOString().split('T')[0]
 }
 
-// Initial room data
+// Initial room data (clean state - all rooms available)
 const initialRooms = [
   // Floor 1
-  { id: 1, number: '101', floor: 1, status: 'available', roomType: 'fan-single', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-single'] },
-  { id: 2, number: '102', floor: 1, status: 'occupied', roomType: 'ac-double', guestName: 'ສົມຊາຍ ໃຈດີ', phone: '020 5555 1234', passport: 'LA12345', price: roomTypePrices['ac-double'], checkInDate: getDateString(-2), stayDuration: 5 },
-  { id: 3, number: '103', floor: 1, status: 'occupied', roomType: 'ac-single', guestName: 'ສຸພາພອນ ສະບາຍດີ', phone: '020 7777 5678', passport: 'LA98765', price: roomTypePrices['ac-single'], checkInDate: getDateString(-1), stayDuration: 3 },
-  { id: 4, number: '104', floor: 1, status: 'available', roomType: 'ac-double', guestName: null, phone: '', passport: '', price: roomTypePrices['ac-double'] },
-  { id: 5, number: '105', floor: 1, status: 'cleaning', roomType: 'fan-double', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-double'] },
+  { id: 1, number: '101', floor: 1, status: 'available', roomType: 'fan-single', price: roomTypePrices['fan-single'] },
+  { id: 2, number: '102', floor: 1, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 3, number: '103', floor: 1, status: 'available', roomType: 'ac-single', price: roomTypePrices['ac-single'] },
+  { id: 4, number: '104', floor: 1, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 5, number: '105', floor: 1, status: 'available', roomType: 'fan-double', price: roomTypePrices['fan-double'] },
   // Floor 2
-  { id: 6, number: '201', floor: 2, status: 'available', roomType: 'fan-single', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-single'] },
-  { id: 7, number: '202', floor: 2, status: 'reserved', roomType: 'ac-double', guestName: 'ພັນທອງ ສີວົງ', phone: '020 9999 1111', passport: 'LA55555', reservationDate: getDateString(1), paymentStatus: 'Paid', price: roomTypePrices['ac-double'] },
-  { id: 8, number: '203', floor: 2, status: 'occupied', roomType: 'ac-double', guestName: 'ວິໄຊ ມົງຄຸນ', phone: '020 8888 9999', passport: 'LA55555', price: roomTypePrices['ac-double'], checkInDate: getDateString(-3), stayDuration: 7 },
-  { id: 9, number: '204', floor: 2, status: 'available', roomType: 'fan-double', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-double'] },
-  { id: 10, number: '205', floor: 2, status: 'occupied', roomType: 'ac-single', guestName: 'ນະພາ ຮຸ່ງເຮືອງ', phone: '020 1234 5678', passport: 'LA11111', price: roomTypePrices['ac-single'], checkInDate: getDateString(-1), stayDuration: 2 },
+  { id: 6, number: '201', floor: 2, status: 'available', roomType: 'fan-single', price: roomTypePrices['fan-single'] },
+  { id: 7, number: '202', floor: 2, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 8, number: '203', floor: 2, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 9, number: '204', floor: 2, status: 'available', roomType: 'fan-double', price: roomTypePrices['fan-double'] },
+  { id: 10, number: '205', floor: 2, status: 'available', roomType: 'ac-single', price: roomTypePrices['ac-single'] },
   // Floor 3
-  { id: 11, number: '301', floor: 3, status: 'reserved', roomType: 'ac-double', guestName: 'ອານຸພາ ສີສະຫວັດ', phone: '020 2222 3333', passport: 'LA12345', reservationDate: getDateString(2), paymentStatus: 'Unpaid', price: roomTypePrices['ac-double'] },
-  { id: 12, number: '302', floor: 3, status: 'available', roomType: 'fan-single', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-single'] },
-  { id: 13, number: '303', floor: 3, status: 'cleaning', roomType: 'ac-single', guestName: null, phone: '', passport: '', price: roomTypePrices['ac-single'] },
-  { id: 14, number: '304', floor: 3, status: 'occupied', roomType: 'ac-double', guestName: 'ບຸນມາ ສຸກໃຈ', phone: '020 9999 0000', passport: 'LA77777', price: roomTypePrices['ac-double'], checkInDate: getDateString(-4), stayDuration: 5 },
-  { id: 15, number: '305', floor: 3, status: 'available', roomType: 'fan-double', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-double'] },
+  { id: 11, number: '301', floor: 3, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 12, number: '302', floor: 3, status: 'available', roomType: 'fan-single', price: roomTypePrices['fan-single'] },
+  { id: 13, number: '303', floor: 3, status: 'available', roomType: 'ac-single', price: roomTypePrices['ac-single'] },
+  { id: 14, number: '304', floor: 3, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 15, number: '305', floor: 3, status: 'available', roomType: 'fan-double', price: roomTypePrices['fan-double'] },
   // Floor 4
-  { id: 16, number: '401', floor: 4, status: 'occupied', roomType: 'ac-double', guestName: 'ມາລີ ດອກໄມ້', phone: '020 1111 2222', passport: 'LA88888', price: roomTypePrices['ac-double'], checkInDate: getDateString(-2), stayDuration: 4 },
-  { id: 17, number: '402', floor: 4, status: 'available', roomType: 'ac-double', guestName: null, phone: '', passport: '', price: roomTypePrices['ac-double'] },
-  { id: 18, number: '403', floor: 4, status: 'reserved', roomType: 'ac-double', guestName: 'ສົມພອນ ອິນທະວົງ', phone: '020 4444 5555', passport: 'LA99999', reservationDate: getDateString(3), paymentStatus: 'Paid', price: roomTypePrices['ac-double'] },
-  { id: 19, number: '404', floor: 4, status: 'cleaning', roomType: 'fan-double', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-double'] },
-  { id: 20, number: '405', floor: 4, status: 'available', roomType: 'fan-single', guestName: null, phone: '', passport: '', price: roomTypePrices['fan-single'] },
+  { id: 16, number: '401', floor: 4, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 17, number: '402', floor: 4, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 18, number: '403', floor: 4, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
+  { id: 19, number: '404', floor: 4, status: 'available', roomType: 'fan-double', price: roomTypePrices['fan-double'] },
+  { id: 20, number: '405', floor: 4, status: 'available', roomType: 'fan-single', price: roomTypePrices['fan-single'] },
 ]
 
-// Guest history mock data (current + past guests)
-const initialGuestHistory = [
-  // Current guests (staying) - ມີ checkInTime
-  { id: 1, guestName: 'ສົມຊາຍ ໃຈດີ', roomNumber: '102', roomType: 'ac-double', phone: '020 5555 1234', passport: 'LA12345', checkInDate: getDateString(-2), checkInTime: '2024-12-09T14:30:00', checkOutDate: null, checkOutTime: null, stayDuration: 5, totalPrice: 1750000, status: 'staying' },
-  { id: 2, guestName: 'ສຸພາພອນ ສະບາຍດີ', roomNumber: '103', roomType: 'ac-single', phone: '020 7777 5678', passport: 'LA98765', checkInDate: getDateString(-1), checkInTime: '2024-12-10T11:15:00', checkOutDate: null, checkOutTime: null, stayDuration: 3, totalPrice: 750000, status: 'staying' },
-  { id: 3, guestName: 'ວິໄຊ ມົງຄຸນ', roomNumber: '203', roomType: 'ac-double', phone: '020 8888 9999', passport: 'LA55555', checkInDate: getDateString(-3), checkInTime: '2024-12-08T16:45:00', checkOutDate: null, checkOutTime: null, stayDuration: 7, totalPrice: 2450000, status: 'staying' },
-  { id: 4, guestName: 'ນະພາ ຮຸ່ງເຮືອງ', roomNumber: '205', roomType: 'ac-single', phone: '020 1234 5678', passport: 'LA11111', checkInDate: getDateString(-1), checkInTime: '2024-12-10T09:00:00', checkOutDate: null, checkOutTime: null, stayDuration: 2, totalPrice: 500000, status: 'staying' },
-  { id: 5, guestName: 'ບຸນມາ ສຸກໃຈ', roomNumber: '304', roomType: 'ac-double', phone: '020 9999 0000', passport: 'LA77777', checkInDate: getDateString(-4), checkInTime: '2024-12-07T20:30:00', checkOutDate: null, checkOutTime: null, stayDuration: 5, totalPrice: 1750000, status: 'staying' },
-  { id: 6, guestName: 'ມາລີ ດອກໄມ້', roomNumber: '401', roomType: 'ac-double', phone: '020 1111 2222', passport: 'LA88888', checkInDate: getDateString(-2), checkInTime: '2024-12-09T18:00:00', checkOutDate: null, checkOutTime: null, stayDuration: 4, totalPrice: 1400000, status: 'staying' },
-
-  // Past guests (checked-out) - ມີ checkInTime ແລະ checkOutTime
-  { id: 7, guestName: 'ອະລຸນ ແຈ່ມໃສ', roomNumber: '101', roomType: 'fan-single', phone: '020 3333 4444', passport: 'LA99999', checkInDate: getDateString(-10), checkInTime: '2024-12-01T10:00:00', checkOutDate: getDateString(-7), checkOutTime: '2024-12-04T12:00:00', stayDuration: 3, totalPrice: 450000, status: 'checked-out' },
-  { id: 8, guestName: 'ພິມໃຈ ຫວານ', roomNumber: '202', roomType: 'ac-double', phone: '020 6666 7777', passport: 'LA12345', checkInDate: getDateString(-15), checkInTime: '2024-11-26T15:30:00', checkOutDate: getDateString(-12), checkOutTime: '2024-11-29T11:00:00', stayDuration: 3, totalPrice: 1050000, status: 'checked-out' },
-  { id: 9, guestName: 'ຊານໄຊ ເກັ່ງ', roomNumber: '104', roomType: 'ac-double', phone: '020 8888 1111', passport: 'LA22222', checkInDate: getDateString(-8), checkInTime: '2024-12-03T13:00:00', checkOutDate: getDateString(-6), checkOutTime: '2024-12-05T10:30:00', stayDuration: 2, totalPrice: 700000, status: 'checked-out' },
-  { id: 10, guestName: 'ກິດຕິ ມະຫາຊົນ', roomNumber: '301', roomType: 'ac-double', phone: '020 2222 5555', passport: 'LA77777', checkInDate: getDateString(-12), checkInTime: '2024-11-29T17:00:00', checkOutDate: getDateString(-9), checkOutTime: '2024-12-02T09:00:00', stayDuration: 3, totalPrice: 1050000, status: 'checked-out' },
-  { id: 11, guestName: 'ຣັດຕະນາ ງາມ', roomNumber: '402', roomType: 'ac-double', phone: '020 5555 8888', passport: 'LA33333', checkInDate: getDateString(-20), checkInTime: '2024-11-21T14:00:00', checkOutDate: getDateString(-17), checkOutTime: '2024-11-24T11:30:00', stayDuration: 3, totalPrice: 1050000, status: 'checked-out' },
-  { id: 12, guestName: 'ສີໄພ ຊາວນາ', roomNumber: '201', roomType: 'fan-single', phone: '020 4444 3333', passport: 'LA44444', checkInDate: getDateString(-14), checkInTime: '2024-11-27T21:00:00', checkOutDate: getDateString(-13), checkOutTime: '2024-11-28T08:00:00', stayDuration: 1, totalPrice: 150000, status: 'checked-out' },
-  { id: 13, guestName: 'ທະນາ ຮັ່ງມີ', roomNumber: '303', roomType: 'ac-single', phone: '020 9999 2222', passport: 'LA88888', checkInDate: getDateString(-7), checkInTime: '2024-12-04T12:30:00', checkOutDate: getDateString(-5), checkOutTime: '2024-12-06T10:00:00', stayDuration: 2, totalPrice: 500000, status: 'checked-out' },
-  { id: 14, guestName: 'ນຸດຊະນາດ ສົດໃສ', roomNumber: '405', roomType: 'fan-single', phone: '020 1111 3333', passport: 'LA55555', checkInDate: getDateString(-18), checkInTime: '2024-11-23T16:00:00', checkOutDate: getDateString(-15), checkOutTime: '2024-11-26T09:30:00', stayDuration: 3, totalPrice: 450000, status: 'checked-out' },
-  { id: 15, guestName: 'ບຸນມີ ສຸກສັນ', roomNumber: '204', roomType: 'fan-double', phone: '020 4444 6666', passport: 'LA22222', checkInDate: getDateString(-25), checkInTime: '2024-11-16T11:00:00', checkOutDate: getDateString(-22), checkOutTime: '2024-11-19T12:00:00', stayDuration: 3, totalPrice: 600000, status: 'checked-out' },
-  { id: 16, guestName: 'ວາຣີ ນ້ຳໃສ', roomNumber: '302', roomType: 'fan-single', phone: '020 7777 9999', passport: 'LA11111', checkInDate: getDateString(-30), checkInTime: '2024-11-11T19:00:00', checkOutDate: getDateString(-28), checkOutTime: '2024-11-13T10:00:00', stayDuration: 2, totalPrice: 300000, status: 'checked-out' },
-]
+// Guest history (empty - clean state)
+const initialGuestHistory = []
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -88,8 +69,64 @@ function App() {
   const [defaultFilter, setDefaultFilter] = useState('all')
   const [amenityFilter, setAmenityFilter] = useState({ type: 'all', value: 'all' })
 
+  // Electron License State
+  const [isActivated, setIsActivated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const isElectron = typeof window !== 'undefined' && window.electronAPI
+
   // Toast Notification State
   const [toasts, setToasts] = useState([])
+
+  // Check license and load data on startup
+  useEffect(() => {
+    const initialize = async () => {
+      if (!isElectron) {
+        // Running in browser - skip license check
+        setIsActivated(true)
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        // Check if license is valid
+        const licenseResult = await window.electronAPI.checkLicense()
+
+        if (licenseResult.valid) {
+          setIsActivated(true)
+
+          // Load saved data
+          const savedData = await window.electronAPI.loadData()
+          if (savedData.rooms && savedData.rooms.length > 0) {
+            setRooms(savedData.rooms)
+          }
+          if (savedData.guestHistory && savedData.guestHistory.length > 0) {
+            setGuestHistory(savedData.guestHistory)
+          }
+        } else {
+          setIsActivated(false)
+        }
+      } catch (error) {
+        console.error('Initialization failed:', error)
+        setIsActivated(false)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    initialize()
+  }, [])
+
+  // Save data to Electron store whenever rooms change
+  useEffect(() => {
+    if (!isElectron || !isActivated || isLoading) return
+    window.electronAPI.saveData({ rooms, guestHistory })
+  }, [rooms, isActivated, isLoading])
+
+  // Save data to Electron store whenever guestHistory changes
+  useEffect(() => {
+    if (!isElectron || !isActivated || isLoading) return
+    window.electronAPI.saveData({ rooms, guestHistory })
+  }, [guestHistory, isActivated, isLoading])
 
   // Add toast notification
   const addToast = (message, type = 'success') => {
@@ -350,16 +387,72 @@ function App() {
     closeModal()
   }
 
-  // Confirm Reservation: Reserved -> Occupied
-  const handleConfirmReservation = (roomId) => {
+  // Confirm Reservation: Reserved -> Occupied (Early Check-in Support)
+  const handleConfirmReservation = (roomId, markAsPaid = false) => {
+    const room = rooms.find(r => r.id === roomId)
+    if (!room) return
+
+    // Business Day Cutoff Logic (same as handleCheckIn)
+    const now = new Date()
+    const hour = now.getHours()
+    let checkInDate
+    if (hour < 6) {
+      // Before 6 AM = yesterday's business day
+      const yesterday = new Date(now)
+      yesterday.setDate(yesterday.getDate() - 1)
+      checkInDate = yesterday.toISOString().split('T')[0]
+    } else {
+      checkInDate = now.toISOString().split('T')[0]
+    }
+
+    // Preserve stayDuration from reservation (default to 1 if not set)
+    const stayDuration = room.stayDuration || 1
+    const totalPrice = (room.price || 0) * stayDuration
+
+    // Determine final payment status
+    const finalPaymentStatus = markAsPaid ? 'Paid' : room.paymentStatus
+
+    // Update room state - PRESERVE stayDuration, optionally update paymentStatus
     setRooms(prevRooms =>
       prevRooms.map(r =>
         r.id === roomId
-          ? { ...r, status: 'occupied', checkInDate: getDateString(0), stayDuration: 1, reservationDate: null, paymentStatus: null }
+          ? {
+            ...r,
+            status: 'occupied',
+            checkInDate: checkInDate,
+            stayDuration: stayDuration, // PRESERVE
+            paymentStatus: finalPaymentStatus, // UPDATE if marked as paid
+            reservationDate: null // Clear since now staying
+          }
           : r
       )
     )
-    addToast('ເຊັກອິນຈາກການຈອງສຳເລັດ!', 'success')
+
+    // Add to guest history
+    const guestRecord = {
+      id: Date.now(),
+      guestName: room.guestName,
+      roomNumber: room.number,
+      roomType: room.roomType,
+      phone: room.phone,
+      passport: room.passport,
+      checkInDate: checkInDate,
+      checkInTime: new Date().toISOString(),
+      checkOutDate: null,
+      checkOutTime: null,
+      stayDuration: stayDuration,
+      totalPrice: totalPrice,
+      status: 'staying',
+      paymentStatus: finalPaymentStatus
+    }
+    setGuestHistory(prev => [guestRecord, ...prev])
+
+    // Show appropriate toast message
+    if (markAsPaid && room.paymentStatus === 'Unpaid') {
+      addToast('ເຊັກອິນສຳເລັດ ແລະ ຮັບຊຳລະເງິນແລ້ວ!', 'success')
+    } else {
+      addToast('ເຊັກອິນຈາກການຈອງສຳເລັດ!', 'success')
+    }
     closeModal()
   }
 
@@ -377,6 +470,7 @@ function App() {
       price: roomData.price
     }
     setRooms(prevRooms => [...prevRooms, newRoom].sort((a, b) => a.number.localeCompare(b.number)))
+    addToast('ເພີ່ມຫ້ອງໃໝ່ສຳເລັດ!', 'success')
   }
 
   // Edit room (from Settings)
@@ -388,11 +482,13 @@ function App() {
           : room
       )
     )
+    addToast('ແກ້ໄຂຂໍ້ມູນຫ້ອງສຳເລັດ!', 'success')
   }
 
   // Delete room (from Settings)
   const handleDeleteRoom = (roomId) => {
     setRooms(prevRooms => prevRooms.filter(room => room.id !== roomId))
+    addToast('ລົບຫ້ອງສຳເລັດ!', 'success')
   }
 
   // Void Transaction - mark guest as void and reset room status
@@ -425,6 +521,7 @@ function App() {
         ))
       }
     }
+    addToast('ຍົກເລີກລາຍການສຳເລັດ (Void)!', 'success')
   }
 
   // Cancel Reservation - reset room and add void record
@@ -454,7 +551,7 @@ function App() {
         ? { ...r, status: 'available', guestName: null, phone: '', passport: '', reservationDate: null, paymentStatus: null }
         : r
     ))
-
+    addToast('ຍົກເລີກການຈອງສຳເລັດ!', 'success')
     closeModal()
   }
 
@@ -510,14 +607,42 @@ function App() {
 
   const checkoutCount = getCheckoutCount()
 
+  // Show loading while checking license
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-400">ກຳລັງໂຫລດ...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show activation screen if not activated
+  if (!isActivated && isElectron) {
+    return (
+      <ActivationScreen
+        onActivationSuccess={() => setIsActivated(true)}
+      />
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 transition-colors duration-300">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isDarkMode={isDarkMode} toggleTheme={toggleTheme} checkoutCount={checkoutCount} />
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-slate-900' : 'bg-gray-50'} transition-colors duration-300`}>
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+        checkoutCount={checkoutCount}
+      />
 
       <main className="ml-64 p-8">
+        <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+
         {activeTab === 'dashboard' && (
           <>
-            <Header isDarkMode={isDarkMode} checkoutCount={checkoutCount} onNotificationClick={() => setActiveTab('checkout')} />
             <StatsCards counts={counts} isDarkMode={isDarkMode} onStatsClick={handleStatsClick} />
             <QuickBooking rooms={rooms} onQuickBook={handleQuickBook} />
           </>
@@ -537,15 +662,24 @@ function App() {
         )}
 
         {activeTab === 'checkout' && (
-          <CheckoutView rooms={rooms} onRoomClick={handleRoomClick} />
+          <CheckoutView
+            rooms={rooms}
+            onRoomClick={handleRoomClick}
+          />
         )}
 
         {activeTab === 'guests' && (
-          <GuestListView guestHistory={guestHistory} onVoidTransaction={handleVoidTransaction} />
+          <GuestListView
+            guestHistory={guestHistory}
+            setGuestHistory={setGuestHistory}
+          />
         )}
 
         {activeTab === 'reports' && (
-          <ReportsView rooms={rooms} guestHistory={guestHistory} />
+          <ReportsView
+            rooms={rooms}
+            guestHistory={guestHistory}
+          />
         )}
 
         {activeTab === 'settings' && (
