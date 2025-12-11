@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Search, BedDouble, Filter, X, Fan, Snowflake, Bed } from 'lucide-react'
+import { Search, BedDouble, Filter, X, Fan, Snowflake, Bed, CheckCircle, Sparkles, Check } from 'lucide-react'
 import RoomGrid from './RoomGrid'
 
 const statusFilters = [
@@ -24,9 +24,10 @@ const getAmenityLabel = (amenityFilter) => {
     return labels[`${amenityFilter.type}-${amenityFilter.value}`] || null
 }
 
-export default function RoomsView({ rooms, isDarkMode, onRoomClick, defaultFilter, setDefaultFilter, amenityFilter, clearAmenityFilter }) {
+export default function RoomsView({ rooms, isDarkMode, onRoomClick, onBulkClean, defaultFilter, setDefaultFilter, amenityFilter, clearAmenityFilter }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState(defaultFilter || 'all')
+    const [selectedRooms, setSelectedRooms] = useState([])
 
     // Sync with defaultFilter from parent
     useEffect(() => {
@@ -37,6 +38,11 @@ export default function RoomsView({ rooms, isDarkMode, onRoomClick, defaultFilte
             }
         }
     }, [defaultFilter, setDefaultFilter])
+
+    // Clear selection when filter changes
+    useEffect(() => {
+        setSelectedRooms([])
+    }, [statusFilter])
 
     // Filter rooms based on search, status, and amenity
     const filteredRooms = useMemo(() => {
@@ -78,39 +84,78 @@ export default function RoomsView({ rooms, isDarkMode, onRoomClick, defaultFilte
 
     const amenityLabel = getAmenityLabel(amenityFilter)
 
+    // Selection mode is active when filtering by cleaning
+    const isSelectionMode = statusFilter === 'cleaning'
+    const cleaningRooms = filteredRooms.filter(r => r.status === 'cleaning')
+
+    // Toggle room selection
+    const toggleRoomSelection = (roomId) => {
+        setSelectedRooms(prev =>
+            prev.includes(roomId)
+                ? prev.filter(id => id !== roomId)
+                : [...prev, roomId]
+        )
+    }
+
+    // Select all cleaning rooms
+    const selectAllRooms = () => {
+        setSelectedRooms(cleaningRooms.map(r => r.id))
+    }
+
+    // Deselect all rooms
+    const deselectAllRooms = () => {
+        setSelectedRooms([])
+    }
+
+    // Handle bulk clean action
+    const handleBulkClean = () => {
+        if (selectedRooms.length > 0 && onBulkClean) {
+            onBulkClean(selectedRooms)
+            setSelectedRooms([])
+        }
+    }
+
+    // Handle room click - either select or open modal
+    const handleRoomClick = (room) => {
+        if (isSelectionMode && room.status === 'cleaning') {
+            toggleRoomSelection(room.id)
+        } else {
+            onRoomClick(room)
+        }
+    }
+
     return (
         <div className="space-y-6">
             {/* Top Bar - Search & Filters */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 transition-colors duration-300">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                    {/* Search Input */}
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="w-5 h-5 text-gray-400 dark:text-gray-500 absolute left-4 top-1/2 -translate-y-1/2" />
-                        <input
-                            type="text"
-                            placeholder="ຄົ້ນຫາເລກຫ້ອງ..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-600 text-sm text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
-                        />
-                    </div>
-
-                    {/* Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <Filter className="w-4 h-4 text-gray-400 dark:text-gray-500 mr-1" />
+                <div className="flex flex-col gap-4">
+                    {/* Filter Pills - Centered & Larger */}
+                    <div className="flex items-center justify-center gap-3 flex-wrap">
                         {statusFilters.map((filter) => (
                             <button
                                 key={filter.key}
                                 onClick={() => setStatusFilter(filter.key)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+                                className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-200
                   ${statusFilter === filter.key
-                                        ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25'
-                                        : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-105'
+                                        : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 hover:scale-105'
                                     }`}
                             >
                                 {filter.label}
                             </button>
                         ))}
+                    </div>
+
+                    {/* Search Input - Smaller */}
+                    <div className="relative max-w-xs mx-auto w-full">
+                        <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                            type="text"
+                            placeholder="ຄົ້ນຫາເລກຫ້ອງ..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-3 py-2 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-600 text-sm text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
+                        />
                     </div>
                 </div>
 
@@ -140,9 +185,56 @@ export default function RoomsView({ rooms, isDarkMode, onRoomClick, defaultFilte
                 </div>
             </div>
 
+            {/* Bulk Action Bar - Only visible when filtering by Cleaning */}
+            {isSelectionMode && cleaningRooms.length > 0 && (
+                <div className="bg-cyan-50 dark:bg-cyan-950/30 rounded-2xl p-4 border-2 border-cyan-200 dark:border-cyan-800 animate-slideUp">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-cyan-100 dark:bg-cyan-900/50 rounded-xl flex items-center justify-center">
+                                <Sparkles className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-cyan-800 dark:text-cyan-200">ໂໝດເລືອກຫຼາຍຫ້ອງ</p>
+                                <p className="text-sm text-cyan-600 dark:text-cyan-400">
+                                    ຄລິກທີ່ຫ້ອງເພື່ອເລືອກ • ເລືອກແລ້ວ {selectedRooms.length} ຈາກ {cleaningRooms.length} ຫ້ອງ
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={selectAllRooms}
+                                className="px-4 py-2 bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-300 rounded-xl font-medium border border-cyan-200 dark:border-cyan-700 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 transition-all"
+                            >
+                                ເລືອກທັງໝົດ
+                            </button>
+                            <button
+                                onClick={deselectAllRooms}
+                                disabled={selectedRooms.length === 0}
+                                className="px-4 py-2 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 rounded-xl font-medium border border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                ຍົກເລີກ
+                            </button>
+                            <button
+                                onClick={handleBulkClean}
+                                disabled={selectedRooms.length === 0}
+                                className="px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-medium shadow-lg shadow-emerald-500/25 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                            >
+                                <CheckCircle className="w-5 h-5" />
+                                ເຮັດເປັນຫ້ອງວ່າງ ({selectedRooms.length})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Room Grid or Empty State */}
             {filteredRooms.length > 0 ? (
-                <RoomGrid roomsByFloor={roomsByFloor} onRoomClick={onRoomClick} />
+                <RoomGrid
+                    roomsByFloor={roomsByFloor}
+                    onRoomClick={handleRoomClick}
+                    isSelectionMode={isSelectionMode}
+                    selectedRooms={selectedRooms}
+                />
             ) : (
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-12 shadow-sm border border-gray-100 dark:border-slate-700 text-center transition-colors duration-300">
                     <div className="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">

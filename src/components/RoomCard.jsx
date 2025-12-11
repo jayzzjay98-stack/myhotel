@@ -1,4 +1,4 @@
-import { Fan, Snowflake } from 'lucide-react'
+import { Fan, Snowflake, Check } from 'lucide-react'
 
 // Custom SVG - Single Bed (ຕຽງດ່ຽວ - front view with one pillow)
 const SingleBedIcon = ({ className }) => (
@@ -77,7 +77,7 @@ const parseRoomType = (roomType) => {
     return { cooling: cooling || 'ac', bed: bed || 'single' }
 }
 
-export default function RoomCard({ room, onRoomClick }) {
+export default function RoomCard({ room, onRoomClick, isSelectionMode = false, isSelected = false }) {
     const status = statusConfig[room.status] || statusConfig.available
     const { cooling, bed } = parseRoomType(room.roomType)
 
@@ -98,41 +98,70 @@ export default function RoomCard({ room, onRoomClick }) {
         if (onRoomClick) onRoomClick(room)
     }
 
+    // Determine if this card is selectable (only cleaning rooms in selection mode)
+    const isSelectable = isSelectionMode && room.status === 'cleaning'
+
+    // Dynamic border and styling for selected state
+    const selectedBorderClass = isSelected
+        ? 'border-emerald-500 dark:border-emerald-400 border-4 shadow-lg shadow-emerald-500/30'
+        : `border-2 ${status.borderColor}`
+
+    const selectedCardBg = isSelected
+        ? 'bg-emerald-100 dark:bg-emerald-900/40'
+        : status.cardBg
+
     return (
         <div
             onClick={handleClick}
-            className={`${status.cardBg} rounded-2xl p-4 border-2 ${status.borderColor} 
-                  hover:shadow-lg dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer
-                  group relative overflow-hidden`}
+            className={`${selectedCardBg} rounded-2xl p-4 ${selectedBorderClass} 
+                  hover:shadow-lg dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-200 cursor-pointer
+                  group relative overflow-hidden ${isSelectable ? 'ring-2 ring-cyan-300/50 dark:ring-cyan-500/30' : ''}`}
         >
+            {/* Selection Checkmark Overlay */}
+            {isSelected && (
+                <div className="absolute top-2 right-2 z-20">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-scaleIn">
+                        <Check className="w-5 h-5 text-white" strokeWidth={3} />
+                    </div>
+                </div>
+            )}
+
+            {/* Selectable indicator */}
+            {isSelectable && !isSelected && (
+                <div className="absolute top-2 right-2 z-20">
+                    <div className="w-8 h-8 bg-white dark:bg-slate-700 border-2 border-gray-300 dark:border-slate-500 rounded-full flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
+                    </div>
+                </div>
+            )}
+
             {/* Hover overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-50/0 to-gray-50/50 dark:from-slate-700/0 dark:to-slate-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
             <div className="relative z-10">
                 {/* TOP: Status Badge (Left) + Cooling Icon (Right) */}
                 <div className="flex items-center justify-between mb-4">
-                    {/* Status Badge */}
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${status.badgeBg} ${status.badgeText}`}>
-                        {status.label}
+                    {/* Status Badge - Larger and Bolder */}
+                    <span className={`px-4 py-1.5 rounded-full text-base font-bold ${isSelected ? 'bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200' : `${status.badgeBg} ${status.badgeText}`}`}>
+                        {isSelected ? 'ເລືອກແລ້ວ' : status.label}
                     </span>
 
                     {/* Cooling Icon */}
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isFan ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isFan ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'} ${isSelected ? 'mr-10' : ''}`}>
                         <CoolingIcon className={`w-5 h-5 ${coolingColor} ${coolingAnimation}`} />
                     </div>
                 </div>
 
                 {/* MIDDLE: Room Number (Large, Centered) */}
                 <div className="text-center py-3">
-                    <span className="text-4xl font-bold text-gray-800 dark:text-white tracking-tight">
+                    <span className={`text-4xl font-bold tracking-tight ${isSelected ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-800 dark:text-white'}`}>
                         {room.number}
                     </span>
                 </div>
 
-                {/* BOTTOM: Bed Icon + Bed Type Text */}
-                <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-slate-700">
-                    <BedIcon className="w-7 h-7 text-gray-400 dark:text-gray-500" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">{bedLabel}</span>
+                {/* BOTTOM: Bed Icon + Bed Type Text - Centered and Larger */}
+                <div className="flex items-center justify-center gap-3 pt-3 border-t border-gray-100 dark:border-slate-700">
+                    <BedIcon className="w-10 h-10 text-gray-500 dark:text-gray-400" />
+                    <span className="text-lg font-semibold text-gray-600 dark:text-gray-300">{bedLabel}</span>
                 </div>
             </div>
         </div>

@@ -3,7 +3,7 @@ import { LayoutDashboard, BedDouble, LogOut, Users, Settings, Hotel, Sun, Moon, 
 const navItems = [
     { icon: LayoutDashboard, label: 'ໜ້າຫຼັກ', key: 'dashboard' },
     { icon: BedDouble, label: 'ຫ້ອງພັກ', key: 'rooms' },
-    { icon: LogOut, label: 'ເຊັກເອົ້າ', key: 'checkout', showBadge: true },
+    { icon: LogOut, label: 'ເຊັກເອົ້າມື້ນີ້', key: 'checkout', showBadge: true },
     { icon: Users, label: 'ລູກຄ້າ', key: 'guests' },
     { icon: BarChart3, label: 'ລາຍງານ', key: 'reports' },
     { icon: Settings, label: 'ຕັ້ງຄ່າ', key: 'settings' },
@@ -27,7 +27,7 @@ export default function Sidebar({ activeTab, setActiveTab, isDarkMode, toggleThe
 
             {/* Navigation */}
             <nav className="flex-1 p-4">
-                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 px-3">ເມນູ</p>
+
                 <ul className="space-y-2">
                     {navItems.map((item) => {
                         const isActive = activeTab === item.key

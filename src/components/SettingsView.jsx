@@ -272,7 +272,7 @@ function RoomFormModal({ isOpen, room, onClose, onSave, isNew = false, existingR
 
                     {/* Bed Type */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ປະເພດຕເຕີຍງ</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ປະເພດຕ່ຽງ</label>
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 type="button"
@@ -283,7 +283,7 @@ function RoomFormModal({ isOpen, room, onClose, onSave, isNew = false, existingR
                                     }`}
                             >
                                 <Bed className={`w-6 h-6 ${bedType === 'single' ? 'text-emerald-500' : 'text-gray-400'}`} />
-                                <span className={`font-medium ${bedType === 'single' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-400'}`}>ຕເຕີຍງດ່ເດີ່ຍວ</span>
+                                <span className={`font-medium ${bedType === 'single' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-400'}`}>ຕ່ຽງດ່ຽວ</span>
                             </button>
                             <button
                                 type="button"
@@ -294,7 +294,7 @@ function RoomFormModal({ isOpen, room, onClose, onSave, isNew = false, existingR
                                     }`}
                             >
                                 <BedDouble className={`w-6 h-6 ${bedType === 'double' ? 'text-purple-500' : 'text-gray-400'}`} />
-                                <span className={`font-medium ${bedType === 'double' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'}`}>ຕເຕີຍງຄູ່</span>
+                                <span className={`font-medium ${bedType === 'double' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'}`}>ຕ່ຽງຄູ່</span>
                             </button>
                         </div>
                     </div>
@@ -409,7 +409,9 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
 
     const getRoomTypeLabel = (roomType) => {
         const [cooling, bed] = (roomType || 'ac-single').split('-')
-        return `${cooling === 'fan' ? 'ພັດລົມ' : 'ແອ'} • ${bed === 'double' ? 'ຄູ່' : 'ດ່ເດີ່ຍວ'}`
+        const coolingLabel = cooling === 'fan' ? 'ຫ້ອງພັດລົມ' : 'ຫ້ອງແອ'
+        const bedLabel = bed === 'double' ? 'ຕ່ຽງຄູ່' : 'ຕ່ຽງດ່ຽວ'
+        return `${coolingLabel} ${bedLabel}`
     }
 
     const getStatusColor = (status) => {

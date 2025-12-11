@@ -1,7 +1,7 @@
 import RoomCard from './RoomCard'
 import { Building2 } from 'lucide-react'
 
-export default function RoomGrid({ roomsByFloor, onRoomClick }) {
+export default function RoomGrid({ roomsByFloor, onRoomClick, isSelectionMode = false, selectedRooms = [] }) {
     const floors = Object.keys(roomsByFloor).sort((a, b) => Number(a) - Number(b))
 
     return (
@@ -29,7 +29,13 @@ export default function RoomGrid({ roomsByFloor, onRoomClick }) {
                     {/* Room Cards Grid */}
                     <div className="grid grid-cols-5 gap-4">
                         {roomsByFloor[floor].map((room) => (
-                            <RoomCard key={room.id} room={room} onRoomClick={onRoomClick} />
+                            <RoomCard
+                                key={room.id}
+                                room={room}
+                                onRoomClick={onRoomClick}
+                                isSelectionMode={isSelectionMode}
+                                isSelected={selectedRooms.includes(room.id)}
+                            />
                         ))}
                     </div>
                 </div>

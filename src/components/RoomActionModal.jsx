@@ -2,8 +2,12 @@ import { useState } from 'react'
 import {
     X, User, Phone, CreditCard, Banknote, LogIn, LogOut,
     Calendar, Clock, CheckCircle, AlertCircle, Sparkles,
-    BedDouble, CalendarClock
+    BedDouble, CalendarClock, AlertTriangle, Lock, Eye, EyeOff, XCircle
 } from 'lucide-react'
+
+// Dual PIN System
+const MASTER_PIN = '12345'  // Owner
+const STAFF_PIN = '1111'    // Staff
 
 // Format price with Lao Kip
 const formatPrice = (price) => {
@@ -25,6 +29,15 @@ const formatDate = (dateString) => {
     return `${dayName} ${day} ${month} ${year}`
 }
 
+// Format time
+const formatTime = (timeString) => {
+    if (!timeString) return ''
+    const date = new Date(timeString)
+    const hours = date.getHours().toString().padStart(2, '0')
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    return `${hours}:${minutes}`
+}
+
 // Calculate checkout date
 const getCheckoutDate = (checkInDate, stayDuration) => {
     if (!checkInDate || !stayDuration) return '-'
@@ -40,6 +53,7 @@ export default function RoomActionModal({
     onCheckOut,
     onMarkCleaned,
     onConfirmReservation,
+    onCancelReservation,
     isDarkMode,
     roomTypePrices
 }) {
@@ -51,6 +65,13 @@ export default function RoomActionModal({
         stayDuration: 1
     })
     const [error, setError] = useState('')
+
+    // Cancel Reservation Modal State
+    const [showCancelModal, setShowCancelModal] = useState(false)
+    const [cancelPin, setCancelPin] = useState('')
+    const [showCancelPin, setShowCancelPin] = useState(false)
+    const [cancelError, setCancelError] = useState('')
+    const [cancelReason, setCancelReason] = useState('')
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -239,20 +260,25 @@ export default function RoomActionModal({
 
             {/* Stay Details */}
             <div className="grid grid-cols-3 gap-3">
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
-                    <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">ເຊັກອິນ</p>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-white">{formatDate(room.checkInDate)}</p>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-700">
+                    <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">ເຊັກອິນ</p>
+                    <p className="text-sm font-bold text-blue-800 dark:text-blue-200 mt-1">{formatDate(room.checkInDate)}</p>
+                    {room.checkInTime && (
+                        <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                            🕐 {formatTime(room.checkInTime)} ໂມງ
+                        </p>
+                    )}
                 </div>
-                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 text-center">
-                    <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">ໄລຍະເວລາ</p>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-white">{room.stayDuration} ຄືນ</p>
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 rounded-xl p-4 text-center border border-amber-200 dark:border-amber-700">
+                    <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-amber-600 dark:text-amber-400">ໄລຍະເວລາ</p>
+                    <p className="text-xl font-bold text-amber-800 dark:text-amber-200 mt-1">{room.stayDuration} ຄືນ</p>
                 </div>
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 text-center">
-                    <CalendarClock className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">ເຊັກເອົ້າ</p>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-white">{getCheckoutDate(room.checkInDate, room.stayDuration)}</p>
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/20 rounded-xl p-4 text-center border border-emerald-200 dark:border-emerald-700">
+                    <CalendarClock className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">ເຊັກເອົ້າ</p>
+                    <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200 mt-1">{getCheckoutDate(room.checkInDate, room.stayDuration)}</p>
                 </div>
             </div>
 
@@ -331,10 +357,11 @@ export default function RoomActionModal({
             <div className="flex gap-3 pt-2">
                 <button
                     type="button"
-                    onClick={onClose}
-                    className="flex-1 py-3 px-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                    onClick={() => setShowCancelModal(true)}
+                    className="flex-1 py-3 px-4 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl font-medium hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-800 transition-colors flex items-center justify-center gap-2"
                 >
-                    ປິດ
+                    <XCircle className="w-5 h-5" />
+                    ຍົກເລີກການຈອງ
                 </button>
                 <button
                     type="button"
@@ -345,6 +372,101 @@ export default function RoomActionModal({
                     ເຊັກອິນດຽວນີ້
                 </button>
             </div>
+
+            {/* Cancel Reservation Modal */}
+            {showCancelModal && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60" onClick={() => setShowCancelModal(false)} />
+                    <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-slideUp">
+                        <div className="p-6 bg-rose-50 dark:bg-rose-900/30 border-b border-rose-100 dark:border-rose-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/50 rounded-full flex items-center justify-center">
+                                    <AlertTriangle className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-rose-800 dark:text-rose-200">ຍົກເລີກການຈອງ</h3>
+                                    <p className="text-sm text-rose-600 dark:text-rose-400">ຫ້ອງ {room.number} - {room.guestName}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            {/* Reason */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ເຫດຜົນ *</label>
+                                <select
+                                    value={cancelReason}
+                                    onChange={(e) => { setCancelReason(e.target.value); setCancelError('') }}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-white"
+                                >
+                                    <option value="">-- ເລືອກເຫດຜົນ --</option>
+                                    <option value="guest_cancelled">ແຂກຍົກເລີກ</option>
+                                    <option value="no_show">ແຂກບໍ່ມາ</option>
+                                    <option value="keying_error">ພິມຜິດ</option>
+                                    <option value="other">ອື່ນໆ</option>
+                                </select>
+                            </div>
+                            {/* PIN */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ລະຫັດ PIN *</label>
+                                <div className="relative">
+                                    <Lock className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                                    <input
+                                        type={showCancelPin ? 'text' : 'password'}
+                                        value={cancelPin}
+                                        onChange={(e) => { setCancelPin(e.target.value); setCancelError('') }}
+                                        placeholder="•••••"
+                                        maxLength={5}
+                                        className="w-full pl-12 pr-12 py-3 bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-600 text-center text-xl tracking-widest font-mono text-gray-800 dark:text-white"
+                                    />
+                                    <button type="button" onClick={() => setShowCancelPin(!showCancelPin)} className="absolute right-4 top-1/2 -translate-y-1/2">
+                                        {showCancelPin ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
+                                    </button>
+                                </div>
+                            </div>
+                            {/* Error */}
+                            {cancelError && (
+                                <div className="p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl border border-rose-200 dark:border-rose-800 flex items-center gap-2">
+                                    <AlertTriangle className="w-5 h-5 text-rose-500" />
+                                    <span className="text-sm text-rose-600 dark:text-rose-400">{cancelError}</span>
+                                </div>
+                            )}
+                            {/* Buttons */}
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowCancelModal(false); setCancelPin(''); setCancelReason(''); setCancelError('') }}
+                                    className="flex-1 py-3 px-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium"
+                                >
+                                    ປິດ
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={!cancelReason || cancelPin.length < 4}
+                                    onClick={() => {
+                                        let authorizer = null
+                                        if (cancelPin === MASTER_PIN) authorizer = 'ຜູ້ດູແລ'
+                                        else if (cancelPin === STAFF_PIN) authorizer = 'ພະນັກງານ'
+                                        else {
+                                            setCancelError('ລະຫັດ PIN ບໍ່ຖືກຕ້ອງ')
+                                            setCancelPin('')
+                                            return
+                                        }
+                                        if (onCancelReservation) {
+                                            onCancelReservation(room.id, cancelReason, authorizer)
+                                        }
+                                        setShowCancelModal(false)
+                                        onClose()
+                                    }}
+                                    className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    <CheckCircle className="w-5 h-5" />
+                                    ຢືນຢັນການຍົກເລີກ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 

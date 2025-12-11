@@ -32,7 +32,6 @@ const quickBookOptions = [
     {
         key: 'fan',
         label: 'ຫ້ອງພັດລົມ',
-        description: 'ມີພັດລົມ',
         icon: Fan,
         bgColor: 'bg-orange-50 dark:bg-orange-900/20',
         iconBg: 'bg-orange-500',
@@ -44,7 +43,6 @@ const quickBookOptions = [
     {
         key: 'ac',
         label: 'ຫ້ອງແອ',
-        description: 'ມີແອເຢັນ',
         icon: Snowflake,
         bgColor: 'bg-blue-50 dark:bg-blue-900/20',
         iconBg: 'bg-blue-500',
@@ -55,8 +53,7 @@ const quickBookOptions = [
     },
     {
         key: 'single',
-        label: 'ຕຽງດ່ຽວ',
-        description: 'ຫ້ອງຕຽງດ່ຽວ',
+        label: 'ຫ້ອງຕຽງດ່ຽວ',
         icon: SingleBedIcon,
         bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
         iconBg: 'bg-emerald-500',
@@ -67,8 +64,7 @@ const quickBookOptions = [
     },
     {
         key: 'double',
-        label: 'ຕຽງຄູ່',
-        description: 'ຫ້ອງສອງຕຽງ',
+        label: 'ຫ້ອງຕຽງຄູ່',
         icon: DoubleBedIcon,
         bgColor: 'bg-purple-50 dark:bg-purple-900/20',
         iconBg: 'bg-purple-500',
@@ -119,12 +115,11 @@ export default function QuickBooking({ rooms, onQuickBook }) {
                                 <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
                             </div>
 
-                            <p className="font-semibold text-gray-800 dark:text-white">{option.label}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{option.description}</p>
+                            <p className="font-semibold text-gray-800 dark:text-white mb-2">{option.label}</p>
 
-                            <div className="flex items-center gap-1">
-                                <span className="text-2xl font-bold text-gray-800 dark:text-white">{count}</span>
-                                <span className="text-sm text-gray-500 dark:text-gray-400">ຫ້ອງວ່າງ</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-4xl font-bold text-gray-800 dark:text-white">{count}</span>
+                                <span className="text-base text-gray-500 dark:text-gray-400">ຫ້ອງວ່າງ</span>
                             </div>
                         </button>
                     )
