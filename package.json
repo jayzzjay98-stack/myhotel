@@ -56,11 +56,23 @@
       "dist/**/*",
       "electron/**/*"
     ],
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node",
+      "**/node_modules/electron/**/*"
+    ],
     "mac": {
       "target": "dmg"
     },
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,

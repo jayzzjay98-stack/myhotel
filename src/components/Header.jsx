@@ -55,7 +55,7 @@ export default function Header({ isDarkMode, checkoutCount = 0, checkoutRooms = 
             </div>
 
             {/* Notifications Bell */}
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative mr-4" ref={dropdownRef}>
                 <button
                     onClick={() => setShowNotifications(!showNotifications)}
                     className="relative p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all hover:scale-105"

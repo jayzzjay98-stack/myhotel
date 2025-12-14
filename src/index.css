@@ -268,3 +268,139 @@
 .animate-toastSlide {
   animation: toastSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ===== iPad & Tablet Responsive Support ===== */
+
+/* Tablet Portrait (768px - 1024px) */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+
+  /* Sidebar - make it narrower but keep icons visible */
+  .sidebar-tablet {
+    width: 80px !important;
+  }
+
+  /* Main content - adjust margin */
+  .main-tablet {
+    margin-left: 80px !important;
+    padding: 1rem !important;
+  }
+
+  /* Larger touch targets */
+  button,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Grid adjustments for tablets */
+  .grid-cols-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* iPad Pro and larger tablets (1024px - 1366px) */
+@media screen and (min-width: 1024px) and (max-width: 1366px) {
+
+  /* Slightly narrower sidebar */
+  aside {
+    width: 220px;
+  }
+
+  main {
+    margin-left: 220px;
+  }
+
+  /* Adjust padding */
+  .p-8 {
+    padding: 1.5rem;
+  }
+
+  /* Grid adjustments */
+  .grid-cols-5 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Touch-friendly improvements for all tablets */
+@media (hover: none) and (pointer: coarse) {
+
+  /* Larger tap targets */
+  button,
+  a,
+  [role="button"],
+  input,
+  select {
+    min-height: 44px;
+  }
+
+  /* Remove hover effects that don't work on touch */
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+
+  /* Active state for touch feedback */
+  button:active,
+  [role="button"]:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  /* Improve scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent text selection on buttons */
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Orientation-specific adjustments */
+@media screen and (orientation: portrait) and (max-width: 1024px) {
+
+  /* More compact layout in portrait */
+  .text-5xl {
+    font-size: 2.5rem;
+  }
+
+  .text-4xl {
+    font-size: 2rem;
+  }
+
+  /* Reduce spacing */
+  .gap-6 {
+    gap: 1rem;
+  }
+
+  .mb-8 {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Landscape mode - full sidebar */
+@media screen and (orientation: landscape) and (min-width: 1024px) {
+  aside {
+    width: 256px;
+  }
+
+  main {
+    margin-left: 256px;
+  }
+}
+
+/* Safe area for devices with notch */
+@supports (padding: env(safe-area-inset-left)) {
+  aside {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  main {
+    padding-right: env(safe-area-inset-right);
+  }
+}

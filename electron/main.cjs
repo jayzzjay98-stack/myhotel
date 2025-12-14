@@ -116,9 +116,32 @@ ipcMain.handle('check-license', () => {
     if (!license) return { valid: false }
 
     const currentMachineId = machineIdSync()
+
     // Check if license machineId matches current machine
     if (license.machineId === currentMachineId && license.isActive) {
-        return { valid: true, license }
+        // Check local expiry date (works offline)
+        if (license.expiresAt) {
+            const expiresAt = new Date(license.expiresAt)
+            const now = new Date()
+
+            if (expiresAt < now) {
+                console.log('License expired locally!')
+                return {
+                    valid: false,
+                    expired: true,
+                    message: 'License ໝົດອາຍຸແລ້ວ'
+                }
+            }
+        }
+
+        // Return key and machineId for server verification
+        return {
+            valid: true,
+            license,
+            keyString: license.keyString,
+            machineId: currentMachineId,
+            expiresAt: license.expiresAt
+        }
     }
     return { valid: false }
 })

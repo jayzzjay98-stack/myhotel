@@ -66,13 +66,15 @@ export default function ActivationScreen({ onActivationSuccess }) {
             if (result.success) {
                 setSuccess(result.message)
 
-                // Save license locally via Electron
+                // Save license locally via Electron (include expiresAt for offline expiry check)
                 if (window.electronAPI) {
                     await window.electronAPI.saveLicense({
-                        key: productKey.trim(),
+                        keyString: productKey.trim(),
                         machineId: machineId,
                         isActive: true,
-                        activatedAt: new Date().toISOString()
+                        activatedAt: new Date().toISOString(),
+                        expiresAt: result.expiresAt,
+                        licenseType: result.licenseType || 'trial'
                     })
                 }
 
@@ -144,31 +146,7 @@ export default function ActivationScreen({ onActivationSuccess }) {
                             />
                         </div>
 
-                        {/* Machine ID */}
-                        <div>
-                            <label className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2">
-                                <Monitor className="w-3 h-3" />
-                                Machine ID
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    value={machineId}
-                                    readOnly
-                                    className="flex-1 px-3 py-2 bg-slate-900/30 border border-slate-700 rounded-lg text-slate-500 font-mono text-xs select-all"
-                                />
-                                <button
-                                    onClick={handleCopyMachineId}
-                                    className={`p-2 rounded-lg transition-all ${copied
-                                        ? 'bg-emerald-500 text-white'
-                                        : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
-                                        }`}
-                                    title="ຄັດລອກ"
-                                >
-                                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        </div>
+                        {/* Machine ID - Hidden for cleaner UI */}
 
                         {/* Error Message */}
                         {error && (

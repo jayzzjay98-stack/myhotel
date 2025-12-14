@@ -155,7 +155,7 @@ export default function RoomCard({ room, onRoomClick, isSelectionMode = false, i
                     {/* Cooling Icon - Larger */}
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isFan ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-blue-50 dark:bg-blue-900/20'} ${isSelected ? 'mr-10' : ''}`}>
                         {isFan ? (
-                            <img src="/fan-icon.png" alt="Fan" className="w-8 h-8 dark:invert dark:brightness-200" />
+                            <img src="./fan-icon.png" alt="Fan" className="w-8 h-8 dark:invert dark:brightness-200" />
                         ) : (
                             <CoolingIcon className={`w-8 h-8 ${coolingColor} ${coolingAnimation}`} />
                         )}

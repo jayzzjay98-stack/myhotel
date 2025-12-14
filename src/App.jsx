@@ -13,6 +13,7 @@ import VoidListView from './components/VoidListView'
 import ActivationScreen from './components/ActivationScreen'
 import LockScreen from './components/LockScreen'
 import { ToastContainer } from './components/Toast'
+import { licenseService } from './services/licenseService'
 
 // Room Type Pricing (LAK)
 const roomTypePrices = {
@@ -32,7 +33,7 @@ const getDateString = (daysOffset = 0) => {
 // Initial room data (with sample occupied room)
 const initialRooms = [
   // Floor 1
-  { id: 1, number: '101', floor: 1, status: 'occupied', roomType: 'fan-single', price: roomTypePrices['fan-single'], guestName: 'ປາ', guestPhone: '020 5555 1234', phone: '020 5555 1234', checkInDate: getDateString(-1), checkInTime: new Date(Date.now() - 86400000).toISOString(), checkOutDate: getDateString(0), stayDuration: 1, totalPrice: roomTypePrices['fan-single'] },
+  { id: 1, number: '101', floor: 1, status: 'available', roomType: 'fan-single', price: roomTypePrices['fan-single'] },
   { id: 2, number: '102', floor: 1, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
   { id: 3, number: '103', floor: 1, status: 'available', roomType: 'ac-single', price: roomTypePrices['ac-single'] },
   { id: 4, number: '104', floor: 1, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
@@ -57,22 +58,8 @@ const initialRooms = [
   { id: 20, number: '405', floor: 4, status: 'available', roomType: 'fan-single', price: roomTypePrices['fan-single'] },
 ]
 
-// Guest history (with sample guest - checkout today)
-const initialGuestHistory = [
-  {
-    id: 1,
-    roomId: 1,
-    roomNumber: '101',
-    guestName: 'ປາ',
-    guestPhone: '020 5555 1234',
-    checkInDate: getDateString(-1),
-    checkOutDate: getDateString(0),
-    duration: 1,
-    roomType: 'fan-single',
-    totalPrice: roomTypePrices['fan-single'],
-    status: 'staying'
-  }
-]
+// Guest history (empty - no sample data)
+const initialGuestHistory = []
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -104,19 +91,33 @@ function App() {
       }
 
       try {
-        // Check if license is valid
+        // Check if license is valid locally
         const licenseResult = await window.electronAPI.checkLicense()
 
         if (licenseResult.valid) {
-          setIsActivated(true)
+          // VERIFY with server (this will catch deleted licenses)
+          console.log('Verifying license with server...')
+          const serverResult = await licenseService.verifyLicense(
+            licenseResult.keyString,
+            licenseResult.machineId
+          )
 
-          // Load saved data
-          const savedData = await window.electronAPI.loadData()
-          if (savedData.rooms && savedData.rooms.length > 0) {
-            setRooms(savedData.rooms)
-          }
-          if (savedData.guestHistory && savedData.guestHistory.length > 0) {
-            setGuestHistory(savedData.guestHistory)
+          if (serverResult.valid) {
+            console.log('Server verification passed!')
+            setIsActivated(true)
+
+            // Load saved data
+            const savedData = await window.electronAPI.loadData()
+            if (savedData.rooms && savedData.rooms.length > 0) {
+              setRooms(savedData.rooms)
+            }
+            if (savedData.guestHistory && savedData.guestHistory.length > 0) {
+              setGuestHistory(savedData.guestHistory)
+            }
+          } else {
+            // License was deleted from server - invalidate local
+            console.log('Server verification FAILED - license deleted')
+            setIsActivated(false)
           }
         } else {
           setIsActivated(false)
