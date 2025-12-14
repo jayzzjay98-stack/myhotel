@@ -171,8 +171,8 @@ export default function RoomCard({ room, onRoomClick, isSelectionMode = false, i
 
                 {/* BOTTOM: Bed Icon + Full Room Type Label - Centered */}
                 <div className="flex items-center justify-center gap-2 pt-4 border-t border-gray-100 dark:border-slate-700">
-                    <BedIcon className="w-7 h-7 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                    <span className="text-base font-semibold text-gray-600 dark:text-gray-300 truncate">{fullRoomTypeLabel}</span>
+                    <BedIcon className="w-6 h-6 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 text-center">{fullRoomTypeLabel}</span>
                 </div>
             </div>
         </div>

@@ -604,7 +604,7 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
                                                         {/* Room Number */}
                                                         <div className="text-center mb-4">
                                                             <p className="text-4xl font-extrabold text-gray-800 dark:text-white">{room.number}</p>
-                                                            <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(room.status)}`}>
+                                                            <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(room.status)}`}>
                                                                 {statusLabel}
                                                             </span>
                                                         </div>
@@ -630,14 +630,14 @@ export default function SettingsView({ rooms, onAddRoom, onEditRoom, onDeleteRoo
                                                             </div>
 
                                                             {/* Room Type Label */}
-                                                            <p className="text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                                                            <p className="text-center text-base font-medium text-gray-600 dark:text-gray-400">
                                                                 {getRoomTypeLabel(room.roomType)}
                                                             </p>
 
                                                             {/* Price */}
-                                                            <p className="text-center text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                                                            <p className="text-center text-xl font-bold text-emerald-600 dark:text-emerald-400">
                                                                 {new Intl.NumberFormat('lo-LA').format(room.price)} ₭
-                                                                <span className="text-xs font-normal text-gray-500 dark:text-gray-400">/ຄືນ</span>
+                                                                <span className="text-sm font-normal text-gray-500 dark:text-gray-400">/ຄືນ</span>
                                                             </p>
                                                         </div>
                                                     </div>

@@ -29,10 +29,10 @@ const getDateString = (daysOffset = 0) => {
   return date.toISOString().split('T')[0]
 }
 
-// Initial room data (clean state - all rooms available)
+// Initial room data (with sample occupied room)
 const initialRooms = [
   // Floor 1
-  { id: 1, number: '101', floor: 1, status: 'available', roomType: 'fan-single', price: roomTypePrices['fan-single'] },
+  { id: 1, number: '101', floor: 1, status: 'occupied', roomType: 'fan-single', price: roomTypePrices['fan-single'], guestName: 'ປາ', guestPhone: '020 5555 1234', phone: '020 5555 1234', checkInDate: getDateString(-1), checkInTime: new Date(Date.now() - 86400000).toISOString(), checkOutDate: getDateString(0), stayDuration: 1, totalPrice: roomTypePrices['fan-single'] },
   { id: 2, number: '102', floor: 1, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
   { id: 3, number: '103', floor: 1, status: 'available', roomType: 'ac-single', price: roomTypePrices['ac-single'] },
   { id: 4, number: '104', floor: 1, status: 'available', roomType: 'ac-double', price: roomTypePrices['ac-double'] },
@@ -57,8 +57,22 @@ const initialRooms = [
   { id: 20, number: '405', floor: 4, status: 'available', roomType: 'fan-single', price: roomTypePrices['fan-single'] },
 ]
 
-// Guest history (empty - clean state)
-const initialGuestHistory = []
+// Guest history (with sample guest - checkout today)
+const initialGuestHistory = [
+  {
+    id: 1,
+    roomId: 1,
+    roomNumber: '101',
+    guestName: 'ປາ',
+    guestPhone: '020 5555 1234',
+    checkInDate: getDateString(-1),
+    checkOutDate: getDateString(0),
+    duration: 1,
+    roomType: 'fan-single',
+    totalPrice: roomTypePrices['fan-single'],
+    status: 'staying'
+  }
+]
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -591,7 +605,7 @@ function App() {
   }
 
   // Calculate rooms due for checkout today
-  const getCheckoutCount = () => {
+  const getCheckoutRooms = () => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -604,10 +618,11 @@ function App() {
       const checkoutDate = new Date(checkIn)
       checkoutDate.setDate(checkoutDate.getDate() + room.stayDuration)
       return checkoutDate.getTime() === today.getTime()
-    }).length
+    })
   }
 
-  const checkoutCount = getCheckoutCount()
+  const checkoutRooms = getCheckoutRooms()
+  const checkoutCount = checkoutRooms.length
 
   // Show loading while checking license
   if (isLoading) {
@@ -654,7 +669,7 @@ function App() {
       />
 
       <main className="ml-64 p-8">
-        <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+        <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} checkoutCount={checkoutCount} checkoutRooms={checkoutRooms} onViewCheckout={() => setActiveTab('checkout')} />
 
         {activeTab === 'dashboard' && (
           <>

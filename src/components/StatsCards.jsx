@@ -123,7 +123,7 @@ export default function StatsCards({ counts, isDarkMode, onStatsClick }) {
 
                         {/* Label & Description */}
                         <div>
-                            <p className="text-xl font-semibold text-gray-800 dark:text-white truncate">{stat.label}</p>
+                            <p className={`font-semibold text-gray-800 dark:text-white ${stat.key === 'cleaning' ? 'text-base' : 'text-xl truncate'}`}>{stat.label}</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{stat.description}</p>
                         </div>
                     </button>

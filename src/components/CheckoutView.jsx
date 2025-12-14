@@ -54,7 +54,7 @@ export default function CheckoutView({ rooms, onRoomClick }) {
 
     // Lao date format
     const laoMonths = ['ມັງກອນ', 'ກຸມພາ', 'ມີນາ', 'ເມສາ', 'ພຶດສະພາ', 'ມິຖຸນາ', 'ກໍລະກົດ', 'ສິງຫາ', 'ກັນຍາ', 'ຕຸລາ', 'ພະຈິກ', 'ທັນວາ']
-    const laoDays = ['ອາ.', 'ຈ.', 'ອ.', 'ພ.', 'ພຫ.', 'ສ.', 'ສ.']
+    const laoDays = ['ວັນອາທິດ', 'ວັນຈັນ', 'ວັນອັງຄານ', 'ວັນພຸດ', 'ວັນພະຫັດ', 'ວັນສຸກ', 'ວັນເສົາ']
 
     const formatDate = (dateString) => {
         if (!dateString) return '-'
@@ -162,19 +162,19 @@ export default function CheckoutView({ rooms, onRoomClick }) {
                                 <div className="flex items-center justify-between gap-4">
                                     {/* Room Info */}
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${timeInfo.isPast
+                                        <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${timeInfo.isPast
                                             ? 'bg-rose-100 dark:bg-rose-900/30'
                                             : 'bg-amber-100 dark:bg-amber-900/30'
                                             }`}>
-                                            <span className={`text-xl font-bold ${timeInfo.isPast
+                                            <span className={`text-2xl font-bold ${timeInfo.isPast
                                                 ? 'text-rose-700 dark:text-rose-300'
                                                 : 'text-amber-700 dark:text-amber-300'
                                                 }`}>{room.number}</span>
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
-                                                <User className="w-4 h-4 text-gray-400" />
-                                                <span className="font-semibold text-gray-800 dark:text-white">
+                                                <User className="w-5 h-5 text-gray-400" />
+                                                <span className="font-semibold text-lg text-gray-800 dark:text-white">
                                                     {room.guestName || <span className="text-rose-500">ບໍ່ມີຊື່</span>}
                                                 </span>
                                                 {/* Paid Badge */}
@@ -183,10 +183,10 @@ export default function CheckoutView({ rooms, onRoomClick }) {
                                                     ຈ່າຍແລ້ວ
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                            <div className="flex items-center gap-4 text-base text-gray-500 dark:text-gray-400">
                                                 {room.phone && (
                                                     <span className="flex items-center gap-1">
-                                                        <Phone className="w-3.5 h-3.5" />
+                                                        <Phone className="w-4 h-4" />
                                                         {room.phone}
                                                     </span>
                                                 )}
@@ -202,18 +202,18 @@ export default function CheckoutView({ rooms, onRoomClick }) {
 
                                     {/* Stay Info */}
                                     <div className="text-center hidden md:block">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">ເຊັກອິນ</p>
-                                        <p className="font-medium text-gray-800 dark:text-white">{formatDate(room.checkInDate)}</p>
+                                        <p className="text-base text-gray-500 dark:text-gray-400">ເຊັກອິນ</p>
+                                        <p className="font-medium text-lg text-gray-800 dark:text-white">{formatDate(room.checkInDate)}</p>
                                     </div>
 
                                     <div className="text-center hidden md:block">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">ໄລຍະເວລາ</p>
-                                        <p className="font-medium text-gray-800 dark:text-white">{room.stayDuration} ຄືນ</p>
+                                        <p className="text-base text-gray-500 dark:text-gray-400">ໄລຍະເວລາ</p>
+                                        <p className="font-medium text-lg text-gray-800 dark:text-white">{room.stayDuration} ຄືນ</p>
                                     </div>
 
                                     <div className="text-center hidden md:block">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">ຍອດລວມ</p>
-                                        <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                        <p className="text-base text-gray-500 dark:text-gray-400">ຍອດລວມ</p>
+                                        <p className="font-semibold text-xl text-emerald-600 dark:text-emerald-400">
                                             {formatPrice(room.price * room.stayDuration)}
                                         </p>
                                     </div>
